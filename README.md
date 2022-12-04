@@ -3,7 +3,7 @@ Repo for general swam development
 
 
 Task execution
--> Collaboration on tasks
--> Task Optimization
--> Emergent behaviour
--> Self replication + improvement
+* Collaboration on tasks
+* Task Optimization
+* Emergent behaviour
+* Self replication + improvement
