@@ -1,0 +1,3 @@
+propagation_strategy: "SmartPropagation"
+message_channel: "LocalMessageChannel"
+message_wrapper: "LocalMessageWrapper"
