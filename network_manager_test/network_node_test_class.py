@@ -53,7 +53,7 @@ class NetworkNodeTestClass(unittest.TestCase, NetworkNodeIdleListenerInterface):
         """
         if not issubclass(node_class, NetworkNode):
             raise Exception("ERROR: node_class must be a subclass of NetworkNode.")
-            
+
         new_node = node_class(additional_config_dict=additional_config_dict)
         self.test_network_nodes.append(new_node)
         new_node.add_idle_listener(self)

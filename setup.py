@@ -5,7 +5,7 @@ from setuptools import setup
 
 directory = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(directory, 'README.md'), encoding='utf-8') as f:
-  long_description = f.read()
+    long_description = f.read()
 
 setup(name='NetworkManager',
       version='1.0.0',
@@ -14,16 +14,16 @@ setup(name='NetworkManager',
       license='MIT',
       long_description=long_description,
       long_description_content_type='text/markdown',
-      packages = ['network_manager', 'swarm'],
+      packages=['network_manager', 'swarm'],
       classifiers=[
-        "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: MIT License"
+          "Programming Language :: Python :: 3",
+          "License :: OSI Approved :: MIT License"
       ],
       install_requires=['logging'],
       python_requires='>=3.10',
       extras_require={
-        'testing': [
-            "pytest",
-        ],
+          "testing": [
+              "pytest",
+          ]
       },
       include_package_data=True)

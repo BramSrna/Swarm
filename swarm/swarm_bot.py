@@ -7,9 +7,10 @@ from swarm.executor_interface import ExecutorInterface
 from swarm.message_types import MessageTypes
 from swarm.swarm_bot_message_handlers import handle_new_task_message, handle_request_task_transfer_message, handle_task_transfer_message
 
+
 class SwarmBot(NetworkNode):
     def __init__(self, additional_config_path: str = None, additional_config_dict: dict = None):
-        NetworkNode.__init__(self, additional_config_path = os.path.join(os.path.dirname(__file__), "./default_swarm_bot_config.yml"), additional_config_dict = additional_config_dict)
+        NetworkNode.__init__(self, additional_config_path=os.path.join(os.path.dirname(__file__), "./default_swarm_bot_config.yml"), additional_config_dict=additional_config_dict)
 
         self.assigned_task = None
         self.task_queue = []

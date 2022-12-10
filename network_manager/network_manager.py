@@ -27,7 +27,7 @@ class NetworkManager(NetworkNodeIdleListenerInterface):
         @return [NetworkManager] The newly created NetworkManager
         """
         NetworkNodeIdleListenerInterface.__init__(self)
-        
+
         self.network_connectivity_level = network_connectivity_level
 
         self.central_network_node = None
@@ -91,7 +91,7 @@ class NetworkManager(NetworkNodeIdleListenerInterface):
         new_id = new_node.get_id()
         if new_id not in self.network_nodes:
             self.network_nodes[new_id] = new_node
-            
+
         new_node.add_idle_listener(self)
 
     def get_central_network_node(self) -> NetworkNode:
