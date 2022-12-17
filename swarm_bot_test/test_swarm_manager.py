@@ -97,6 +97,13 @@ class TestSwarmManager(NetworkNodeTestClass):
         self.assertIn(test_swarm_bot_2.get_id(), test_swarm_manager.get_idle_bots())
         self.assertIn(test_swarm_bot_3.get_id(), test_swarm_manager.get_idle_bots())
 
+        self.assertTrue(test_swarm_bot_1.is_connected_to(test_swarm_bot_2.get_id()))
+        self.assertTrue(test_swarm_bot_1.is_connected_to(test_swarm_bot_3.get_id()))
+        self.assertTrue(test_swarm_bot_2.is_connected_to(test_swarm_bot_1.get_id()))
+        self.assertTrue(test_swarm_bot_2.is_connected_to(test_swarm_bot_3.get_id()))
+        self.assertTrue(test_swarm_bot_3.is_connected_to(test_swarm_bot_1.get_id()))
+        self.assertTrue(test_swarm_bot_3.is_connected_to(test_swarm_bot_2.get_id()))
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
