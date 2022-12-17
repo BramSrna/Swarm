@@ -588,4 +588,4 @@ class NetworkNode(MessageChannelUser):
 
         if curr_state != new_state:
             for listener in self.idle_listeners:
-                listener.notify_idle_state(new_state)
+                listener.notify_idle_state(self.get_id(), new_state)

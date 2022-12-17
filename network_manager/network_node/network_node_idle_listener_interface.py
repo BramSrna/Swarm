@@ -24,18 +24,18 @@ class NetworkNodeIdleListenerInterface(object):
         self.num_busy_nodes = 0
         self.logger = logging.getLogger('NetworkNode')
 
-    def notify_idle_state(self, new_state: bool) -> None:
+    def notify_idle_state(self, node_id, node_idle: bool) -> None:
         """
         notify_idle_state
 
         Called by the network nodes to notify listeners of
         a change in the idle state of the node.
 
-        @param new_state [bool] True if the node is now idle. False if the node is busy.
+        @param bot_idle [bool] True if the node is now idle. False if the node is busy.
 
         @return None
         """
-        if new_state:
+        if node_idle:
             self.num_busy_nodes -= 1
         else:
             self.num_busy_nodes += 1
