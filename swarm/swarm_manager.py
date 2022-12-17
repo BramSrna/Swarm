@@ -133,5 +133,11 @@ class SwarmManager(NetworkManager):
         bots_to_execute = self.idle_bots[:req_num_bots]
         self.idle_bots = self.idle_bots[req_num_bots:]
 
+        for root_bot_id in bots_to_execute:
+            for leaf_bot_id in bots_to_execute:
+                if root_bot_id != leaf_bot_id:
+                    if not self.network_nodes[root_bot_id].is_connected_to(leaf_bot_id):
+                        self.network_nodes[root_bot_id].connect_to_network_node(self.network_nodes[leaf_bot_id])
+
         for bot_id in bots_to_execute:
             self.network_nodes[bot_id].receive_task(task_to_execute)
