@@ -1,13 +1,15 @@
 import logging
 import unittest
 
+from network_manager_test.network_node_test_class import NetworkNodeTestClass
 from network_manager.network_node.network_node import NetworkNode
 from network_manager.network_manager import NetworkManager
 from network_manager.network_connectivity_level import NetworkConnectivityLevel
 
 
-class TestNetworkManager(unittest.TestCase):
+class TestNetworkManager(NetworkNodeTestClass):
     def setUp(self):
+        super().setUp()
         self.test_network_managers = []
 
     def tearDown(self):
@@ -22,9 +24,9 @@ class TestNetworkManager(unittest.TestCase):
     def test_new_node_added_in_fully_connected_network_will_be_connected_to_all_other_nodes(self):
         test_network_manager = self.create_network_manager(NetworkConnectivityLevel.FULLY_CONNECTED)
 
-        test_network_node_1 = NetworkNode()
-        test_network_node_2 = NetworkNode()
-        test_network_node_3 = NetworkNode()
+        test_network_node_1 = self.create_network_node(NetworkNode)
+        test_network_node_2 = self.create_network_node(NetworkNode)
+        test_network_node_3 = self.create_network_node(NetworkNode)
 
         test_network_node_1.startup()
         test_network_node_2.startup()
@@ -34,7 +36,7 @@ class TestNetworkManager(unittest.TestCase):
         test_network_manager.add_network_node(test_network_node_2)
         test_network_manager.add_network_node(test_network_node_3)
 
-        new_network_node = NetworkNode()
+        new_network_node = self.create_network_node(NetworkNode)
 
         new_network_node.startup()
 
@@ -51,9 +53,9 @@ class TestNetworkManager(unittest.TestCase):
     def test_new_node_added_in_partially_connected_network_will_be_connected_to_random_node(self):
         test_network_manager = self.create_network_manager(NetworkConnectivityLevel.PARTIALLY_CONNECTED)
 
-        test_network_node_1 = NetworkNode()
-        test_network_node_2 = NetworkNode()
-        test_network_node_3 = NetworkNode()
+        test_network_node_1 = self.create_network_node(NetworkNode)
+        test_network_node_2 = self.create_network_node(NetworkNode)
+        test_network_node_3 = self.create_network_node(NetworkNode)
 
         test_network_node_1.startup()
         test_network_node_2.startup()
@@ -63,7 +65,7 @@ class TestNetworkManager(unittest.TestCase):
         test_network_manager.add_network_node(test_network_node_2)
         test_network_manager.add_network_node(test_network_node_3)
 
-        new_network_node = NetworkNode()
+        new_network_node = self.create_network_node(NetworkNode)
 
         new_network_node.startup()
 
@@ -77,9 +79,9 @@ class TestNetworkManager(unittest.TestCase):
     def test_new_node_added_in_centralized_network_will_be_connected_to_central_network_node(self):
         test_network_manager = self.create_network_manager(NetworkConnectivityLevel.CENTRALIZED)
 
-        test_network_node_1 = NetworkNode()
-        test_network_node_2 = NetworkNode()
-        test_network_node_3 = NetworkNode()
+        test_network_node_1 = self.create_network_node(NetworkNode)
+        test_network_node_2 = self.create_network_node(NetworkNode)
+        test_network_node_3 = self.create_network_node(NetworkNode)
 
         test_network_node_1.startup()
         test_network_node_2.startup()
@@ -89,7 +91,7 @@ class TestNetworkManager(unittest.TestCase):
         test_network_manager.add_network_node(test_network_node_2)
         test_network_manager.add_network_node(test_network_node_3)
 
-        new_network_node = NetworkNode()
+        new_network_node = self.create_network_node(NetworkNode)
 
         new_network_node.startup()
 
@@ -105,9 +107,9 @@ class TestNetworkManager(unittest.TestCase):
     def test_removing_node_from_network_will_disconnect_it_from_all_nodes(self):
         test_network_manager = self.create_network_manager(NetworkConnectivityLevel.FULLY_CONNECTED)
 
-        test_network_node_1 = NetworkNode()
-        test_network_node_2 = NetworkNode()
-        test_network_node_3 = NetworkNode()
+        test_network_node_1 = self.create_network_node(NetworkNode)
+        test_network_node_2 = self.create_network_node(NetworkNode)
+        test_network_node_3 = self.create_network_node(NetworkNode)
 
         test_network_node_1.startup()
         test_network_node_2.startup()
@@ -117,7 +119,7 @@ class TestNetworkManager(unittest.TestCase):
         test_network_manager.add_network_node(test_network_node_2)
         test_network_manager.add_network_node(test_network_node_3)
 
-        new_network_node = NetworkNode()
+        new_network_node = self.create_network_node(NetworkNode)
 
         new_network_node.startup()
 
@@ -144,9 +146,9 @@ class TestNetworkManager(unittest.TestCase):
     def test_network_manager_will_throw_an_error_if_removing_a_node_will_leave_orphan_nodes(self):
         test_network_manager = self.create_network_manager(NetworkConnectivityLevel.CENTRALIZED)
 
-        test_network_node_1 = NetworkNode()
-        test_network_node_2 = NetworkNode()
-        test_network_node_3 = NetworkNode()
+        test_network_node_1 = self.create_network_node(NetworkNode)
+        test_network_node_2 = self.create_network_node(NetworkNode)
+        test_network_node_3 = self.create_network_node(NetworkNode)
 
         test_network_node_1.startup()
         test_network_node_2.startup()
@@ -156,7 +158,7 @@ class TestNetworkManager(unittest.TestCase):
         test_network_manager.add_network_node(test_network_node_2)
         test_network_manager.add_network_node(test_network_node_3)
 
-        new_network_node = NetworkNode()
+        new_network_node = self.create_network_node(NetworkNode)
 
         new_network_node.startup()
 
