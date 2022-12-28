@@ -1,6 +1,13 @@
 # Swarm
 Repo for general swam development
 
+# Use Case
+1. User logs in through browser
+2. User enters task bundle (tasks to execute, how many bots per task, any output or logs to measure)
+3. Bots in swarm execute tasks
+4. User can monitor execution
+5. User notified when task execution complete
+
 
 Task execution
 * Collaboration on tasks
