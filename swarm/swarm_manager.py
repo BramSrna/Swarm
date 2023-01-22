@@ -1,3 +1,5 @@
+import threading
+
 from network_manager.network_manager import NetworkManager
 from network_manager.network_connectivity_level import NetworkConnectivityLevel
 from network_manager.network_node.network_node import NetworkNode
@@ -25,8 +27,11 @@ class SwarmManager(NetworkManager):
         """
         NetworkManager.__init__(self, network_connectivity_level)
 
-        self.task_queue = []
+        self.task_bundle_queue = []
         self.idle_bots = []
+
+        self.task_tracker = {}
+        self.locks = {}
 
     def get_idle_bots(self):
         """
@@ -54,7 +59,38 @@ class SwarmManager(NetworkManager):
         """
         super().add_network_node(new_node)
         self.idle_bots.append(new_node.get_id())
+        new_node.add_task_execution_listener(self)
         self.check_for_available_task_executors()
+
+    def notify_task_completion(self, task_id, task_output):
+        self.task_tracker[task_id]["COMPLETE"] = True
+        self.task_tracker[task_id]["IN_PROGRESS"] = False
+        self.task_tracker[task_id]["OUTPUT"] = task_output
+        with self.locks[task_id]:
+            self.locks[task_id].notify_all()
+
+    def receive_task_bundle(self, new_task_bundle):
+        self.task_bundle_queue.append(new_task_bundle)
+        self.check_for_available_task_executors()
+
+        task_ids = new_task_bundle.get_task_ids()
+
+        for task_id in task_ids:
+            if not self.task_tracker[task_id]["COMPLETE"]:
+                with self.locks[task_id]:
+                    check = self.locks[task_id].wait(10)
+                    if not check:
+                        raise Exception("Task {} did not complete in expected time.".format(task_id))
+
+        task_outputs = {}
+        for task in new_task_bundle.get_tasks():
+            task_name = task.__class__.__name__
+            if task_name not in task_outputs:
+                task_outputs[task_name] = []
+            task_id = task.get_id()
+            task_outputs[task_name].append(self.task_tracker[task_id]["OUTPUT"])
+
+        return task_outputs        
 
     def receive_task(self, new_task: SwarmTask):
         """
@@ -66,8 +102,9 @@ class SwarmManager(NetworkManager):
 
         @return None
         """
-        self.task_queue.append(new_task)
-        self.check_for_available_task_executors()
+        new_task_bundle = SwarmTaskBundle()
+        new_task_bundle.add_task(new_task, 1)
+        self.receive_task_bundle(new_task_bundle)
 
     def notify_idle_state(self, bot_id: str, bot_idle: bool) -> None:
         """
@@ -83,6 +120,7 @@ class SwarmManager(NetworkManager):
         @return None
         """
         super().notify_idle_state(bot_id, bot_idle)
+        
         if bot_idle:
             if bot_id not in self.idle_bots:
                 self.idle_bots.append(bot_id)
@@ -106,20 +144,20 @@ class SwarmManager(NetworkManager):
         @return None
         """
         i = 0
-        while i < len(self.task_queue):
-            task = self.task_queue[i]
-            req_num_bots = task.get_req_num_bots()
+        while i < len(self.task_bundle_queue):
+            task_bundle = self.task_bundle_queue[i]
+            req_num_bots = task_bundle.get_req_num_bots()
             if req_num_bots <= len(self.idle_bots):
                 break
             i += 1
 
-        if (i < len(self.task_queue)):
-            next_task = self.task_queue.pop(i)
+        if (i < len(self.task_bundle_queue)):
+            task_bundle = self.task_bundle_queue.pop(i)
 
-            self.setup_execution_group(next_task)
+            self.setup_execution_group(task_bundle)
             self.check_for_available_task_executors()
 
-    def setup_execution_group(self, task_to_execute: SwarmTask):
+    def setup_execution_group(self, task_bundle_to_execute: SwarmTask):
         """
         setup_execution_group
 
@@ -129,7 +167,7 @@ class SwarmManager(NetworkManager):
 
         @return None
         """
-        req_num_bots = task_to_execute.get_req_num_bots()
+        req_num_bots = task_bundle_to_execute.get_req_num_bots()
         bots_to_execute = self.idle_bots[:req_num_bots]
         self.idle_bots = self.idle_bots[req_num_bots:]
 
@@ -139,5 +177,13 @@ class SwarmManager(NetworkManager):
                     if not self.network_nodes[root_bot_id].is_connected_to(leaf_bot_id):
                         self.network_nodes[root_bot_id].connect_to_network_node(self.network_nodes[leaf_bot_id])
 
-        for bot_id in bots_to_execute:
-            self.network_nodes[bot_id].receive_task(task_to_execute)
+        for i in range(task_bundle_to_execute.get_req_num_bots()):
+            task = task_bundle_to_execute.get_tasks()[i]
+            task_id = task.get_id()
+            self.task_tracker[task_id] = {}
+            self.task_tracker[task_id]["COMPLETE"] = False
+            self.task_tracker[task_id]["IN_PROGRESS"] = True
+            self.task_tracker[task_id]["OUTPUT"] = None
+            self.locks[task_id] = threading.Condition()
+
+            self.network_nodes[bots_to_execute[i]].receive_task(task)

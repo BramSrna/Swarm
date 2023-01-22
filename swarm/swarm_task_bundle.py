@@ -1,0 +1,19 @@
+class SwarmTaskBundle(object):
+    def __init__(self):
+        self.tasks = []
+        self.task_ids = []
+
+    def add_task(self, task_type, num_bots):
+        for _ in range(num_bots):
+            new_task = task_type()
+            self.tasks.append(new_task)
+            self.task_ids.append(new_task.get_id())
+
+    def get_req_num_bots(self):
+        return len(self.tasks)
+
+    def get_tasks(self):
+        return self.tasks
+
+    def get_task_ids(self):
+        return self.task_ids
