@@ -145,7 +145,7 @@ class PropagationStrategyComparer(NetworkNodeIdleListenerInterface):
         node_ind = 0
         while num_messages > 0:
             node = self.network_nodes[node_ind]
-            msg_id = node.create_propagation_message("TEST", {})
+            msg_id = node.send_propagation_message("TEST", {})
             self.wait_for_idle_network(60)
             for node in self.network_nodes:
                 assert(node.interacted_with_msg_with_id(msg_id))

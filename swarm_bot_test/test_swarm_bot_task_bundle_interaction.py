@@ -14,7 +14,7 @@ class SimpleTask(SwarmTask):
         self.task_complete = False
         self.sleep_time = 3
 
-    def is_task_complete(self):
+    def is_complete(self):
         return self.task_complete
 
     def execute_task(self):
@@ -44,6 +44,45 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
         test_task_bundle.add_task(SimpleTask, 5)
 
         self.assertFalse(test_swarm_bot_1.receive_task_bundle(test_task_bundle))
+
+    def test_can_disable_task_execution(self):
+        test_swarm_bot_1 = self.create_network_node(SwarmBot)
+        test_swarm_bot_1.startup()
+
+        test_task_bundle = SwarmTaskBundle()
+        test_task_bundle.add_task(SimpleTask, 1)
+
+        test_swarm_bot_1.set_task_executor_status(False)
+
+        can_execute = test_swarm_bot_1.receive_task_bundle(test_task_bundle)
+        self.assertTrue(can_execute)
+
+        self.wait_for_idle_network()
+
+        self.assertFalse(test_task_bundle.is_complete())
+
+    def test_can_disable_and_reenable_task_execution(self):
+        test_swarm_bot_1 = self.create_network_node(SwarmBot)
+        test_swarm_bot_1.startup()
+
+        test_task_bundle = SwarmTaskBundle()
+        test_task_bundle.add_task(SimpleTask, 1)
+
+        test_swarm_bot_1.set_task_executor_status(False)
+
+        can_execute = test_swarm_bot_1.receive_task_bundle(test_task_bundle)
+        self.assertTrue(can_execute)
+
+        self.wait_for_idle_network()
+
+        self.assertFalse(test_task_bundle.is_complete())
+        
+        test_swarm_bot_1.set_task_executor_status(True)
+
+        self.wait_for_idle_network()
+
+        self.assertTrue(test_task_bundle.is_complete())
+
 
 
 if __name__ == "__main__":

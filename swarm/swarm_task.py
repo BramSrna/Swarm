@@ -11,7 +11,7 @@ class SwarmTask(object):
     def execute_task(self):
         raise Exception("ERROR: The execute_task method must be implemented by the concrete class.")
 
-    def is_task_complete(self):
+    def is_complete(self):
         raise Exception("ERROR: The is_task_complete method must be implemented by the concrete class.")
 
     def set_executor_interface(self, new_executor_interface):
