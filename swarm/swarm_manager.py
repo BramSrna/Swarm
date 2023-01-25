@@ -4,6 +4,7 @@ from network_manager.network_manager import NetworkManager
 from network_manager.network_connectivity_level import NetworkConnectivityLevel
 from network_manager.network_node.network_node import NetworkNode
 from swarm.swarm_task import SwarmTask
+from swarm.swarm_task_bundle import SwarmTaskBundle
 
 """
 SwarmManager
@@ -90,7 +91,7 @@ class SwarmManager(NetworkManager):
             task_id = task.get_id()
             task_outputs[task_name].append(self.task_tracker[task_id]["OUTPUT"])
 
-        return task_outputs        
+        return task_outputs
 
     def receive_task(self, new_task: SwarmTask):
         """
@@ -120,7 +121,7 @@ class SwarmManager(NetworkManager):
         @return None
         """
         super().notify_idle_state(bot_id, bot_idle)
-        
+
         if bot_idle:
             if bot_id not in self.idle_bots:
                 self.idle_bots.append(bot_id)

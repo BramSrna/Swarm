@@ -2,6 +2,7 @@ from swarm.swarm_task import SwarmTask
 from federated_learning.federated_learning_model import FederatedLearningModel
 import numpy
 
+
 class FederatedLearningClientTask(SwarmTask):
     def __init__(self):
         super().__init__()
@@ -19,7 +20,7 @@ class FederatedLearningClientTask(SwarmTask):
         return len(self.node_list) > self.data_threshold
 
     def execute_task(self):
-        n_samples, n_features = 10, 5
+        _, n_features = 10, 5
         curr_x = numpy.random.randn(1, n_features)[0]
         curr_y = numpy.random.randn(1)[0]
 
@@ -44,7 +45,7 @@ class FederatedLearningClientTask(SwarmTask):
     def retrain_model(self):
         train_percent = 0.70
         validation_percent = 0.15
-        test_percent = 0.15
+        # test_percent = 0.15
 
         train_start_ind = 0
         validation_start_ind = int(len(self.local_data) * train_percent)

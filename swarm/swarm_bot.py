@@ -11,7 +11,8 @@ from swarm.swarm_bot_message_handlers import handle_new_task_message, \
     handle_swarm_memory_object_location_message, \
     handle_request_swarm_memory_read_message, \
     handle_transfer_swarm_memory_value_message, \
-    handle_delete_from_swarm_memory_message
+    handle_delete_from_swarm_memory_message, \
+    handle_notify_task_bundle_execution_start_message
 
 
 class SwarmBot(NetworkNode):
@@ -41,7 +42,8 @@ class SwarmBot(NetworkNode):
             str(MessageTypes.SWARM_MEMORY_OBJECT_LOCATION): handle_swarm_memory_object_location_message,
             str(MessageTypes.REQUEST_SWARM_MEMORY_READ): handle_request_swarm_memory_read_message,
             str(MessageTypes.TRANSFER_SWARM_MEMORY_VALUE): handle_transfer_swarm_memory_value_message,
-            str(MessageTypes.DELETE_FROM_SWARM_MEMORY): handle_delete_from_swarm_memory_message
+            str(MessageTypes.DELETE_FROM_SWARM_MEMORY): handle_delete_from_swarm_memory_message,
+            str(MessageTypes.NOTIFY_TASK_BUNDLE_EXECUTION_START): handle_notify_task_bundle_execution_start_message
         }
         for msg_type, handler in self.msg_handler_dict.items():
             self.assign_msg_handler(msg_type, handler)
@@ -101,8 +103,10 @@ class SwarmBot(NetworkNode):
                         return self.swarm_memory_cache[key_to_read]["VALUE"]
 
     def delete_from_swarm_memory(self, key_to_delete):
-        self.local_swarm_memory_contents.pop(key_to_delete)
-        self.swarm_mem_loc_hash.pop(key_to_delete)
+        if key_to_delete in self.local_swarm_memory_contents:
+            self.local_swarm_memory_contents.pop(key_to_delete)
+        if key_to_delete in self.swarm_mem_loc_hash:
+            self.swarm_mem_loc_hash.pop(key_to_delete)
         self.send_propagation_message(MessageTypes.DELETE_FROM_SWARM_MEMORY, {"KEY_TO_DELETE": key_to_delete})
 
     def get_task_bundle_queue(self):
@@ -136,6 +140,7 @@ class SwarmBot(NetworkNode):
 
                 if next_task_bundle is not None:
                     self.delete_from_swarm_memory(next_task_bundle.get_id())
+                    self.send_propagation_message(MessageTypes.NOTIFY_TASK_BUNDLE_EXECUTION_START, {"TASK_BUNDLE_ID": next_task_bundle.get_id()})
                     self.assigned_task = next_task_bundle.get_tasks()[0]
                     self.task_execution_history.append(self.assigned_task)
                     executor_interface = ExecutorInterface(self)

@@ -2,10 +2,11 @@ from swarm.swarm_task import SwarmTask
 from federated_learning.federated_learning_model import FederatedLearningModel
 import numpy
 
+
 class FederatedLearningAggregatorTask(SwarmTask):
     def __init__(self):
         super().__init__()
-        
+
         self.node_list = []
         self.aggregator_list = []
         self.aggregation_threshold = 3
@@ -38,8 +39,8 @@ class FederatedLearningAggregatorTask(SwarmTask):
         if len(self.model_pool) > 1:
             i = 1
             while i < len(self.model_pool):
-                validation_data = numpy.concatenate((validation_data, self.model_pool[i]["VALIDATION_DATA"]), axis = 0)
-                validation_targets = numpy.concatenate((validation_targets, self.model_pool[i]["VALIDATION_TARGETS"]), axis = 0)
+                validation_data = numpy.concatenate((validation_data, self.model_pool[i]["VALIDATION_DATA"]), axis=0)
+                validation_targets = numpy.concatenate((validation_targets, self.model_pool[i]["VALIDATION_TARGETS"]), axis=0)
                 i += 1
         new_block.set_validation_data(validation_data)
         new_block.set_validation_targets(validation_targets)

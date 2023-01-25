@@ -45,11 +45,12 @@ def handle_swarm_memory_object_location_message(swarm_bot, message):
 def handle_request_swarm_memory_read_message(swarm_bot, message):
     msg_payload = message.get_message_payload()
     object_key = msg_payload["KEY_TO_READ"]
-    
+
     if object_key in swarm_bot.local_swarm_memory_contents:
         object_value = swarm_bot.local_swarm_memory_contents[object_key]
 
         swarm_bot.send_propagation_message(MessageTypes.TRANSFER_SWARM_MEMORY_VALUE, {"OBJECT_KEY": object_key, "OBJECT_VALUE": object_value})
+
 
 def handle_transfer_swarm_memory_value_message(swarm_bot, message):
     msg_payload = message.get_message_payload()
@@ -65,6 +66,7 @@ def handle_transfer_swarm_memory_value_message(swarm_bot, message):
     with swarm_bot.swarm_memory_cache[object_key]["LOCK"]:
         swarm_bot.swarm_memory_cache[object_key]["LOCK"].notify_all()
 
+
 def handle_delete_from_swarm_memory_message(swarm_bot, message):
     msg_payload = message.get_message_payload()
     key_to_delete = msg_payload["KEY_TO_DELETE"]
@@ -75,3 +77,16 @@ def handle_delete_from_swarm_memory_message(swarm_bot, message):
         swarm_bot.swarm_mem_loc_hash.pop(key_to_delete)
 
 
+def handle_notify_task_bundle_execution_start_message(swarm_bot, message):
+    message_payload = message.get_message_payload()
+
+    task = None
+    task_bundle_id = message_payload["TASK_BUNDLE_ID"]
+    for i in range(len(swarm_bot.task_bundle_queue)):
+        curr_task = swarm_bot.task_bundle_queue[i]
+        if (("TASK" in curr_task) and (curr_task["TASK"].get_id() == task_bundle_id)) or (("TASK_BUNDLE_ID" in curr_task) and (curr_task["TASK_BUNDLE_ID"] == task_bundle_id)):
+            task = curr_task
+            break
+        i += 1
+    if task is not None:
+        swarm_bot.task_bundle_queue.pop(i)
