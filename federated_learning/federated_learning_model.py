@@ -5,6 +5,7 @@ import copy
 # https://scikit-learn.org/0.15/modules/generated/sklearn.linear_model.SGDRegressor.html#sklearn.linear_model.SGDRegressor.partial_fit
 # https://scikit-learn.org/0.15/modules/scaling_strategies.html
 
+
 class FederatedLearningModel(object):
     def __init__(self):
         self.current_model = linear_model.SGDRegressor()
@@ -17,7 +18,7 @@ class FederatedLearningModel(object):
     def train(self, data, targets):
         self.current_model.partial_fit(data, targets)
 
-    def __eq__(self, other_model):            
+    def __eq__(self, other_model):
         if other_model is None:
             return False
 
@@ -28,7 +29,7 @@ class FederatedLearningModel(object):
             pass
         elif (((curr_coef is None) and (other_ceof is not None)) or ((curr_coef is not None) and (other_ceof is None))):
             return False
-        else:            
+        else:
             if curr_coef.__class__.__name__ != other_ceof.__class__.__name__:
                 return False
 
@@ -46,7 +47,7 @@ class FederatedLearningModel(object):
             pass
         elif (((curr_intercept is None) and (other_intercept is not None)) or ((curr_intercept is not None) and (other_intercept is None))):
             return False
-        else:    
+        else:
             if curr_intercept.__class__.__name__ != other_intercept.__class__.__name__:
                 return False
 
@@ -102,7 +103,7 @@ class FederatedLearningModel(object):
         new_coef /= len(model_list)
         new_intercept /= len(model_list)
 
-        aggregated_model = Model()
+        aggregated_model = FederatedLearningModel()
         aggregated_model.set_coef(new_coef)
         aggregated_model.set_intercept(new_intercept)
 

@@ -1,20 +1,16 @@
 import logging
 import unittest
-import time
+import pytest
 
 from network_manager_test.network_node_test_class import NetworkNodeTestClass
-from swarm.swarm_task import SwarmTask
 from swarm.swarm_bot import SwarmBot
 from swarm.swarm_manager import SwarmManager
 from network_manager.network_connectivity_level import NetworkConnectivityLevel
-from federated_learning.federated_learning_aggregator_task import FederatedLearningAggregatorTask
-from federated_learning.federated_learning_client_task import FederatedLearningClientTask
-from federated_learning.federated_learning_node_task import FederatedLearningNodeTask
 from federated_learning.federated_learning_task_bundle import get_federated_learning_task_bundle
 from federated_learning.federated_learning_model import FederatedLearningModel
 
 
-class TestSwarmManager(NetworkNodeTestClass):
+class TestFederatedLearning(NetworkNodeTestClass):
     def setUp(self):
         super().setUp()
         self.test_swarm_managers = []
@@ -28,6 +24,7 @@ class TestSwarmManager(NetworkNodeTestClass):
         self.test_swarm_managers.append(new_manager)
         return new_manager
 
+    @pytest.mark.skip(reason="Will be executable once https://github.com/users/BramSrna/projects/4 is finished.")
     def test_new_model_will_be_generated_after_running_full_e2e_federated_learning(self):
         manager = self.create_swarm_manager(NetworkConnectivityLevel.FULLY_CONNECTED)
 

@@ -240,9 +240,9 @@ class NetworkNode(MessageChannelUser):
         self.msg_inbox.append(message)
         self.msg_inbox_has_values.set()
 
-    def create_propagation_message(self, message_type: str, message_payload: dict) -> int:
+    def send_propagation_message(self, message_type: str, message_payload: dict) -> int:
         """
-        create_propagation_message
+        send_propagation_message
 
         Creates a message to propagate accross the network and adds it to the
         message outbox.
@@ -263,9 +263,9 @@ class NetworkNode(MessageChannelUser):
 
         return message_id
 
-    def create_directed_message(self, target_node_id: int, message_type: str, message_payload: dict) -> int:
+    def send_directed_message(self, target_node_id: int, message_type: str, message_payload: dict) -> int:
         """
-        create_directed_message
+        send_directed_message
 
         Creates a message to send directly to a given node and adds it to the
         message outbox.

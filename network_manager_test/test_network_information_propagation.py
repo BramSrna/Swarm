@@ -22,7 +22,7 @@ class TestNetworkInformationPropagation(NetworkNodeTestClass):
         test_network_node_2.connect_to_network_node(test_network_node_1)
         test_network_node_3.connect_to_network_node(test_network_node_1)
 
-        msg_id = test_network_node_1.create_propagation_message("TEST", {})
+        msg_id = test_network_node_1.send_propagation_message("TEST", {})
 
         self.wait_for_idle_network()
 
@@ -64,7 +64,7 @@ class TestNetworkInformationPropagation(NetworkNodeTestClass):
         test_network_node_6.connect_to_network_node(test_network_node_3)
         test_network_node_7.connect_to_network_node(test_network_node_3)
 
-        msg_id = test_network_node_1.create_propagation_message("TEST", {})
+        msg_id = test_network_node_1.send_propagation_message("TEST", {})
 
         self.wait_for_idle_network()
 
@@ -102,7 +102,7 @@ class TestNetworkInformationPropagation(NetworkNodeTestClass):
         test_network_node_5.connect_to_network_node(test_network_node_4)
         test_network_node_1.connect_to_network_node(test_network_node_5)
 
-        msg_id = test_network_node_1.create_propagation_message("TEST", {})
+        msg_id = test_network_node_1.send_propagation_message("TEST", {})
 
         self.wait_for_idle_network()
 

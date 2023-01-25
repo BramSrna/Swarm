@@ -1,5 +1,7 @@
 class SwarmTaskBundle(object):
     def __init__(self):
+        self.id = id(self)
+
         self.tasks = []
         self.task_ids = []
 
@@ -17,3 +19,12 @@ class SwarmTaskBundle(object):
 
     def get_task_ids(self):
         return self.task_ids
+
+    def is_complete(self):
+        complete = True
+        for task in self.tasks:
+            complete = complete and task.is_complete()
+        return complete
+
+    def get_id(self):
+        return self.id

@@ -1,10 +1,11 @@
 from swarm.swarm_task import SwarmTask
 from federated_learning.federated_learning_model import FederatedLearningModel
 
+
 class FederatedLearningNodeTask(SwarmTask):
     def __init__(self):
         super().__init__()
-        
+
         self.node_list = []
         self.aggregator_list = []
         self.client_list = []
