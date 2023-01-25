@@ -66,9 +66,15 @@ class SwarmBot(NetworkNode):
     def get_assigned_task(self):
         return self.assigned_task
 
-    def receive_task_bundle(self, new_task_bundle):
-        if new_task_bundle.get_req_num_bots() - 1 > len(self.msg_channels):
+    def validate_task_bundle(self, task_bundle):
+        if task_bundle.get_req_num_bots() - 1 > len(self.msg_channels):
             return False
+        return True
+
+    def receive_task_bundle(self, new_task_bundle):
+        if not self.validate_task_bundle(new_task_bundle):
+            return False
+
         self.task_bundle_queue.append({"TASK": new_task_bundle})
         self.write_to_swarm_memory(new_task_bundle.get_id(), new_task_bundle)
         self.send_propagation_message(MessageTypes.NEW_TASK_BUNDLE, {"TASK_BUNDLE_ID": new_task_bundle.get_id(), "TASK_BUNDLE_HOLDER": self.get_id()})
@@ -135,6 +141,8 @@ class SwarmBot(NetworkNode):
                     next_task_bundle_info = self.task_bundle_queue.pop(0)
                     if "TASK" in next_task_bundle_info:
                         next_task_bundle = next_task_bundle_info["TASK"]
+                        if not self.validate_task_bundle(next_task_bundle):
+                            next_task_bundle = None
                     else:
                         self.send_directed_message(next_task_bundle_info["HOLDER_ID"], MessageTypes.REQUEST_TASK_BUNDLE_TRANSFER, {"TASK_BUNDLE_ID": next_task_bundle_info["TASK_BUNDLE_ID"]})
 
