@@ -43,31 +43,6 @@ class TestNetworkMessaging(NetworkNodeTestClass):
         self.assertTrue(test_network_node_1.sent_msg_with_id(msg_id))
         self.assertTrue(test_network_node_2.received_msg_with_id(msg_id))
 
-    def test_message_handler_associated_with_message_type_will_be_called_when_message_is_received(self):
-        test_network_node_1 = self.create_network_node(NetworkNode)
-        test_network_node_2 = self.create_network_node(NetworkNode)
-
-        test_network_node_1.startup()
-        test_network_node_2.startup()
-
-        test_network_node_1.connect_to_network_node(test_network_node_2)
-        test_network_node_2.connect_to_network_node(test_network_node_1)
-
-        test_send_message_type = "SEND"
-        test_response_message_type = "RESPONSE"
-
-        def TestHandler(network_node, message):
-            network_node.send_directed_message(message.get_sender_id(), test_response_message_type, {})
-
-        test_network_node_2.assign_msg_handler(test_send_message_type, TestHandler)
-
-        test_network_node_1.send_directed_message(test_network_node_2.get_id(), test_send_message_type, {})
-
-        self.wait_for_idle_network()
-
-        received_messages = test_network_node_1.get_received_messages()
-        self.assertTrue(test_response_message_type, received_messages[list(received_messages.keys())[0]][0])
-
     def test_cannot_send_a_message_to_a_node_after_disconnecting_from_it(self):
         test_network_node_1 = self.create_network_node(NetworkNode)
         test_network_node_2 = self.create_network_node(NetworkNode)

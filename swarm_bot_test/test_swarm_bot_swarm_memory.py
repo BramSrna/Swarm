@@ -30,7 +30,7 @@ class TestSwarmBotSwarmMemory(NetworkNodeTestClass):
         test_mem_id = "TEST_ID"
         test_mem_val = "TEST_VAL"
 
-        test_swarm_bot_1.write_to_swarm_memory(test_mem_id, test_mem_val)
+        test_swarm_bot_1.write_to_swarm_memory(test_mem_id, test_mem_val, "str")
 
         ret_val = test_swarm_bot_1.read_from_swarm_memory(test_mem_id)
 
@@ -49,7 +49,7 @@ class TestSwarmBotSwarmMemory(NetworkNodeTestClass):
         test_mem_id = "TEST_ID"
         test_mem_val = "TEST_VAL"
 
-        test_swarm_bot_1.write_to_swarm_memory(test_mem_id, test_mem_val)
+        test_swarm_bot_1.write_to_swarm_memory(test_mem_id, test_mem_val, "str")
 
         self.wait_for_idle_network()
 
@@ -77,7 +77,7 @@ class TestSwarmBotSwarmMemory(NetworkNodeTestClass):
         test_mem_id = "TEST_ID"
         test_mem_val = "TEST_VAL"
 
-        test_swarm_bot_1.write_to_swarm_memory(test_mem_id, test_mem_val)
+        test_swarm_bot_1.write_to_swarm_memory(test_mem_id, test_mem_val, "str")
 
         self.wait_for_idle_network()
 

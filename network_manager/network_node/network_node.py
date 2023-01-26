@@ -505,7 +505,7 @@ class NetworkNode(MessageChannelUser):
                     self.rcvd_messages[msg_id] = {"MSG": message, "NUM_TIMES_RCVD": 1}
 
                     if message_type in self.msg_handler_dict:
-                        self.msg_handler_dict[message_type](self, message)
+                        self.msg_handler_dict[message_type](message)
                     else:
                         self.logger.warning("Warning: Received message type with no assigned handler: " + str(message_type))
 
