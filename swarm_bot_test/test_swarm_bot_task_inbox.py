@@ -61,7 +61,7 @@ class TestSwarmBotTaskInbox(NetworkNodeTestClass):
         self.assertEqual(test_task_bundle, bot_2_ret_val)
         self.assertEqual(test_task_bundle, bot_3_ret_val)
 
-    def test_task_bundle_is_removed_from_swarm_memory_after_Execution(self):
+    def test_task_bundle_is_removed_from_swarm_memory_after_execution(self):
         test_swarm_bot_1 = self.create_network_node(SwarmBot)
         test_swarm_bot_2 = self.create_network_node(SwarmBot)
         test_swarm_bot_3 = self.create_network_node(SwarmBot)
