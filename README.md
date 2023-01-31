@@ -26,3 +26,6 @@ Task execution
 1. Swarm manager receives tasks
 2. Swarm manager distributes tasks to all bots
 3. Bots form and tear down groups as needed
+
+
+Augmented reality enabled devices connected in a swarm
