@@ -29,3 +29,6 @@ Task execution
 
 
 Augmented reality enabled devices connected in a swarm
+
+![image](https://user-images.githubusercontent.com/32938492/215887088-2bfbe084-559f-4390-ad02-17658bb54129.png)
+
