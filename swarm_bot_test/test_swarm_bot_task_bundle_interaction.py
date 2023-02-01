@@ -156,6 +156,37 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
         self.assertEqual(0, len(test_swarm_bot_2.get_task_bundle_queue()))
         self.assertEqual(0, len(test_swarm_bot_3.get_task_bundle_queue()))
 
+    def test_swarm_can_execute_task_bundle_that_requires_multiple_bots(self):
+        test_swarm_bot_1 = self.create_network_node(SwarmBot)
+        test_swarm_bot_2 = self.create_network_node(SwarmBot)
+        test_swarm_bot_3 = self.create_network_node(SwarmBot)
+
+        test_swarm_bot_1.startup()
+        test_swarm_bot_2.startup()
+        test_swarm_bot_3.startup()
+
+        test_swarm_bot_1.connect_to_network_node(test_swarm_bot_2)
+        test_swarm_bot_1.connect_to_network_node(test_swarm_bot_3)
+
+        test_swarm_bot_2.connect_to_network_node(test_swarm_bot_1)
+        test_swarm_bot_2.connect_to_network_node(test_swarm_bot_3)
+
+        test_swarm_bot_3.connect_to_network_node(test_swarm_bot_1)
+        test_swarm_bot_3.connect_to_network_node(test_swarm_bot_2)
+
+        test_task_bundle = SwarmTaskBundle()
+        test_task_bundle.add_task(SimpleTask, 3)
+
+        check_val = test_swarm_bot_1.receive_task_bundle(test_task_bundle)
+        self.assertTrue(check_val)
+
+        self.wait_for_idle_network()
+
+        print(test_task_bundle.status_to_str())
+
+        self.assertTrue(test_task_bundle.is_complete())
+
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

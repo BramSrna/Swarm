@@ -28,3 +28,10 @@ class SwarmTaskBundle(object):
 
     def get_id(self):
         return self.id
+
+    def status_to_str(self):
+        status = "Status: \n"
+        for task in self.tasks:
+            status += "\t{}: {}\n".format(task.get_id(), task.is_complete())
+        return status
+

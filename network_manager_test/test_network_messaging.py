@@ -16,7 +16,7 @@ class TestNetworkMessaging(NetworkNodeTestClass):
         test_network_node_1.connect_to_network_node(test_network_node_2)
         test_network_node_2.connect_to_network_node(test_network_node_1)
 
-        msg_id = test_network_node_1.send_directed_message(test_network_node_2.get_id(), "TEST", {})
+        msg_id = test_network_node_1.send_directed_message(test_network_node_2.get_id(), "TEST", {}, False)
 
         self.wait_for_idle_network()
 
@@ -36,7 +36,7 @@ class TestNetworkMessaging(NetworkNodeTestClass):
         test_network_node_1.teardown()
         test_network_node_1.startup()
 
-        msg_id = test_network_node_1.send_directed_message(test_network_node_2.get_id(), "TEST", {})
+        msg_id = test_network_node_1.send_directed_message(test_network_node_2.get_id(), "TEST", {}, False)
 
         self.wait_for_idle_network()
 
@@ -53,7 +53,7 @@ class TestNetworkMessaging(NetworkNodeTestClass):
         test_network_node_1.connect_to_network_node(test_network_node_2)
         test_network_node_2.connect_to_network_node(test_network_node_1)
 
-        msg_id = test_network_node_1.send_directed_message(test_network_node_2.get_id(), "TEST", {})
+        msg_id = test_network_node_1.send_directed_message(test_network_node_2.get_id(), "TEST", {}, False)
 
         self.wait_for_idle_network()
 
@@ -64,7 +64,7 @@ class TestNetworkMessaging(NetworkNodeTestClass):
         test_network_node_2.disconnect_from_network_node(test_network_node_1.get_id())
 
         with self.assertRaises(Exception) as raised_error:
-            msg_id = test_network_node_1.send_directed_message(test_network_node_2.get_id(), "TEST", {})
+            msg_id = test_network_node_1.send_directed_message(test_network_node_2.get_id(), "TEST", {}, False)
 
         self.assertIn("Tried to create message for unknown node ID", str(raised_error.exception))
 
