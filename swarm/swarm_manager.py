@@ -3,8 +3,8 @@ import threading
 from network_manager.network_manager import NetworkManager
 from network_manager.network_connectivity_level import NetworkConnectivityLevel
 from network_manager.network_node.network_node import NetworkNode
-from swarm.swarm_task import SwarmTask
-from swarm.swarm_task_bundle import SwarmTaskBundle
+from swarm.swarm_task.swarm_task import SwarmTask
+from swarm.swarm_task.swarm_task_bundle import SwarmTaskBundle
 
 """
 SwarmManager

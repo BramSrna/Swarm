@@ -3,9 +3,9 @@ import unittest
 import time
 
 from network_manager_test.network_node_test_class import NetworkNodeTestClass
-from swarm.swarm_task import SwarmTask
+from swarm.swarm_task.swarm_task import SwarmTask
 from swarm.swarm_bot import SwarmBot
-from swarm.swarm_task_bundle import SwarmTaskBundle
+from swarm.swarm_task.swarm_task_bundle import SwarmTaskBundle
 
 
 class SimpleTask(SwarmTask):
@@ -51,15 +51,17 @@ class TestSwarmBotTaskInbox(NetworkNodeTestClass):
 
         self.wait_for_idle_network()
 
-        bot_1_ret_val = test_swarm_bot_1.read_from_swarm_memory(test_task_bundle.get_id())
-        bot_2_ret_val = test_swarm_bot_2.read_from_swarm_memory(test_task_bundle.get_id())
-        bot_3_ret_val = test_swarm_bot_3.read_from_swarm_memory(test_task_bundle.get_id())
+        task = test_task_bundle.get_tasks()[0]
+
+        bot_1_ret_val = test_swarm_bot_1.read_from_swarm_memory(task.get_id())
+        bot_2_ret_val = test_swarm_bot_2.read_from_swarm_memory(task.get_id())
+        bot_3_ret_val = test_swarm_bot_3.read_from_swarm_memory(task.get_id())
 
         self.wait_for_idle_network()
 
-        self.assertEqual(test_task_bundle, bot_1_ret_val)
-        self.assertEqual(test_task_bundle, bot_2_ret_val)
-        self.assertEqual(test_task_bundle, bot_3_ret_val)
+        self.assertEqual(task, bot_1_ret_val["TASK"])
+        self.assertEqual(task, bot_2_ret_val["TASK"])
+        self.assertEqual(task, bot_3_ret_val["TASK"])
 
     def test_task_bundle_is_removed_from_swarm_memory_after_execution(self):
         test_swarm_bot_1 = self.create_network_node(SwarmBot)
@@ -89,23 +91,25 @@ class TestSwarmBotTaskInbox(NetworkNodeTestClass):
 
         self.wait_for_idle_network()
 
-        bot_1_ret_val = test_swarm_bot_1.read_from_swarm_memory(test_task_bundle.get_id())
-        bot_2_ret_val = test_swarm_bot_2.read_from_swarm_memory(test_task_bundle.get_id())
-        bot_3_ret_val = test_swarm_bot_3.read_from_swarm_memory(test_task_bundle.get_id())
+        task = test_task_bundle.get_tasks()[0]
+
+        bot_1_ret_val = test_swarm_bot_1.read_from_swarm_memory(task.get_id())
+        bot_2_ret_val = test_swarm_bot_2.read_from_swarm_memory(task.get_id())
+        bot_3_ret_val = test_swarm_bot_3.read_from_swarm_memory(task.get_id())
 
         self.wait_for_idle_network()
 
-        self.assertEqual(test_task_bundle, bot_1_ret_val)
-        self.assertEqual(test_task_bundle, bot_2_ret_val)
-        self.assertEqual(test_task_bundle, bot_3_ret_val)
+        self.assertEqual(task, bot_1_ret_val["TASK"])
+        self.assertEqual(task, bot_2_ret_val["TASK"])
+        self.assertEqual(task, bot_3_ret_val["TASK"])
 
         test_swarm_bot_1.set_task_executor_status(True)
 
         self.wait_for_idle_network()
 
-        bot_1_ret_val = test_swarm_bot_1.read_from_swarm_memory(test_task_bundle.get_id())
-        bot_2_ret_val = test_swarm_bot_2.read_from_swarm_memory(test_task_bundle.get_id())
-        bot_3_ret_val = test_swarm_bot_3.read_from_swarm_memory(test_task_bundle.get_id())
+        bot_1_ret_val = test_swarm_bot_1.read_from_swarm_memory(task.get_id())
+        bot_2_ret_val = test_swarm_bot_2.read_from_swarm_memory(task.get_id())
+        bot_3_ret_val = test_swarm_bot_3.read_from_swarm_memory(task.get_id())
 
         self.wait_for_idle_network()
 

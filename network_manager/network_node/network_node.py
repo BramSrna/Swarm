@@ -14,6 +14,7 @@ from network_manager.network_node.message_wrapper.message_wrapper import Message
 from network_manager.network_node.propagation_strategy.naive_propagation import NaivePropagation
 from network_manager.network_node.propagation_strategy.smart_propagation import SmartPropagation
 from network_manager.network_node.network_node_idle_listener_interface import NetworkNodeIdleListenerInterface
+from network_manager.network_node.network_node_message_types import NetworkNodeMessageTypes
 
 
 """
@@ -47,6 +48,7 @@ class NetworkNode(MessageChannelUser):
 
         self.msg_inbox = []
         self.msg_outbox = []
+        self.response_locks = {}
 
         self.run_node = threading.Event()
         self.msg_inbox_has_values = threading.Event()
@@ -63,8 +65,7 @@ class NetworkNode(MessageChannelUser):
         self.num_processes = 0
 
         self.msg_handler_dict = {}
-        for msg_type, handler in self.msg_handler_dict.items():
-            self.assign_msg_handler(msg_type, handler)
+        self.assign_msg_handler(str(NetworkNodeMessageTypes.MSG_RESPONSE), self.handle_msg_response_message)
 
         self.config = yaml.load(open(os.path.join(os.path.dirname(__file__), "./default_node_config.yml")), Loader=yaml.FullLoader)
         additional_config = {}
@@ -148,6 +149,8 @@ class NetworkNode(MessageChannelUser):
 
         @return None
         """
+        if msg_type in self.msg_handler_dict:
+            raise Exception("ERROR: Node already has a handler for message type {}".format(msg_type))
         self.msg_handler_dict[msg_type] = handler
 
     def get_id(self) -> int:
@@ -263,7 +266,7 @@ class NetworkNode(MessageChannelUser):
 
         return message_id
 
-    def send_directed_message(self, target_node_id: int, message_type: str, message_payload: dict) -> int:
+    def send_directed_message(self, target_node_id: int, message_type: str, message_payload: dict, sync_message: bool) -> int:
         """
         send_directed_message
 
@@ -278,7 +281,22 @@ class NetworkNode(MessageChannelUser):
         """
         message_id = self._generate_message_id()
 
-        return self._create_message(target_node_id, message_id, message_type, message_payload, False)
+        message_id = self._create_message(target_node_id, message_id, message_type, message_payload, False)
+        if not sync_message:
+            return None
+        self.response_locks[message_id] = {
+            "LOCK": threading.Condition(),
+            "RESPONSE": None
+        }
+        with self.response_locks[message_id]["LOCK"]:
+            check = self.response_locks[message_id]["LOCK"].wait(10)
+            if not check:
+                raise Exception("ERROR: Did not receive message response within time limit. Message ID: {}".format(message_id))
+        return self.response_locks[message_id]["RESPONSE"]
+
+    def respond_to_message(self, message: MessageWrapper, message_payload: dict):
+        message_payload["ORIGINAL_MESSAGE_ID"] = message.get_id()
+        self.send_directed_message(message.get_sender_id(), NetworkNodeMessageTypes.MSG_RESPONSE, message_payload, False)
 
     def get_message_channels(self) -> None:
         """
@@ -302,6 +320,7 @@ class NetworkNode(MessageChannelUser):
 
         @return [bool] True if the node has received a message with the given ID. False otherwise.
         """
+        print(self.rcvd_messages)
         return msg_id in self.rcvd_messages
 
     def sent_msg_with_id(self, msg_id: int) -> bool:
@@ -409,6 +428,15 @@ class NetworkNode(MessageChannelUser):
         @return [bool] True if the node is idle. False otherwise.
         """
         return self.num_processes == 0
+
+    def handle_msg_response_message(self, message):
+        message_payload = message.get_message_payload()
+        original_message_id = message_payload["ORIGINAL_MESSAGE_ID"]
+        if original_message_id not in self.response_locks:
+            raise Exception("ERROR: Received message response for message that was never sent: {}".format(message.get_message_payload()))
+        self.response_locks[original_message_id]["RESPONSE"] = message
+        with self.response_locks[original_message_id]["LOCK"]:
+            self.response_locks[original_message_id]["LOCK"].notify_all()
 
     def _msg_sender_loop(self) -> None:
         """

@@ -1,9 +1,10 @@
 import logging
 import unittest
 import time
+import pytest
 
 from network_manager_test.network_node_test_class import NetworkNodeTestClass
-from swarm.swarm_task import SwarmTask
+from swarm.swarm_task.swarm_task import SwarmTask
 from swarm.swarm_bot import SwarmBot
 
 
@@ -59,6 +60,7 @@ class TestSwarmBotSwarmMemory(NetworkNodeTestClass):
 
         self.assertEqual(test_mem_val, ret_val)
 
+    @pytest.mark.skip(reason="Will be executable once https://github.com/users/BramSrna/projects/4?pane=issue&itemId=19697674 is finished.")
     def test_can_access_swarm_memory_when_info_stored_on_non_directly_connected_swarm_bot(self):
         test_swarm_bot_1 = self.create_network_node(SwarmBot)
         test_swarm_bot_2 = self.create_network_node(SwarmBot)

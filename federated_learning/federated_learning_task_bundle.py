@@ -1,7 +1,7 @@
 from federated_learning.federated_learning_aggregator_task import FederatedLearningAggregatorTask
 from federated_learning.federated_learning_client_task import FederatedLearningClientTask
 from federated_learning.federated_learning_node_task import FederatedLearningNodeTask
-from swarm.swarm_task_bundle import SwarmTaskBundle
+from swarm.swarm_task.swarm_task_bundle import SwarmTaskBundle
 
 
 def get_federated_learning_task_bundle():

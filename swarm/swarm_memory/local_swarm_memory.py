@@ -1,13 +1,9 @@
-import threading
-
-
 class LocalSwarmMemory(object):
     def __init__(self, owner_bot_id):
         self.owner_bot_id = owner_bot_id
 
         self.contents = {}
         self.data_to_holder_id_map = {}
-        self.cache = {}
 
     def write(self, new_key_to_write, new_value_to_write, data_type):
         self.contents[new_key_to_write] = {
@@ -40,42 +36,6 @@ class LocalSwarmMemory(object):
         if data_key in self.data_to_holder_id_map:
             return self.data_to_holder_id_map[data_key]["HOLDER_ID"]
         return None
-
-    def prepare_cache_spot(self, data_key):
-        if data_key not in self.cache:
-            self.cache[data_key] = {
-                "LOCK": threading.Condition(),
-                "VALUE": None
-            }
-
-    def read_cache_value(self, data_key):
-        if data_key in self.cache:
-            return self.cache[data_key]["VALUE"]
-        return None
-
-    def get_cache_lock(self, data_key):
-        if data_key in self.cache:
-            return self.cache[data_key]["LOCK"]
-        return None
-
-    def write_cache_value(self, data_key, data_value):
-        if data_key not in self.cache:
-            self.cache[data_key] = {
-                "LOCK": threading.Condition(),
-                "VALUE": None
-            }
-
-        self.cache[data_key]["VALUE"] = data_value
-        with self.cache[data_key]["LOCK"]:
-            self.cache[data_key]["LOCK"].notify_all()
-
-    def wait_for_cache_value(self, data_key):
-        if self.read_cache_value(data_key) is None:
-            with self.get_cache_lock(data_key):
-                check = self.get_cache_lock(data_key).wait(10)
-                if not check:
-                    raise Exception("Memory value was not read in time. Key to read: {}".format(data_key))
-        return self.read_cache_value(data_key)
 
     def get_ids_of_contents_of_type(self, type_to_get):
         ids = []
