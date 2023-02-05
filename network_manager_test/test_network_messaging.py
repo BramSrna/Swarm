@@ -16,11 +16,12 @@ class TestNetworkMessaging(NetworkNodeTestClass):
         test_network_node_1.connect_to_network_node(test_network_node_2)
         test_network_node_2.connect_to_network_node(test_network_node_1)
 
-        msg_id = test_network_node_1.send_directed_message(test_network_node_2.get_id(), "TEST", {}, False)
+        test_network_node_1.send_directed_message(test_network_node_2.get_id(), "TEST", {}, False)
 
         self.wait_for_idle_network()
 
-        self.assertTrue(test_network_node_1.sent_msg_with_id(msg_id))
+        msg_id = list(test_network_node_1.get_sent_messages().keys())[0]
+
         self.assertTrue(test_network_node_2.received_msg_with_id(msg_id))
 
     def test_messages_can_be_sent_after_node_is_torn_down_and_started_again(self):
@@ -36,11 +37,11 @@ class TestNetworkMessaging(NetworkNodeTestClass):
         test_network_node_1.teardown()
         test_network_node_1.startup()
 
-        msg_id = test_network_node_1.send_directed_message(test_network_node_2.get_id(), "TEST", {}, False)
+        test_network_node_1.send_directed_message(test_network_node_2.get_id(), "TEST", {}, False)
 
         self.wait_for_idle_network()
 
-        self.assertTrue(test_network_node_1.sent_msg_with_id(msg_id))
+        msg_id = list(test_network_node_1.get_sent_messages().keys())[0]
         self.assertTrue(test_network_node_2.received_msg_with_id(msg_id))
 
     def test_cannot_send_a_message_to_a_node_after_disconnecting_from_it(self):
@@ -53,11 +54,11 @@ class TestNetworkMessaging(NetworkNodeTestClass):
         test_network_node_1.connect_to_network_node(test_network_node_2)
         test_network_node_2.connect_to_network_node(test_network_node_1)
 
-        msg_id = test_network_node_1.send_directed_message(test_network_node_2.get_id(), "TEST", {}, False)
+        test_network_node_1.send_directed_message(test_network_node_2.get_id(), "TEST", {}, False)
 
         self.wait_for_idle_network()
 
-        self.assertTrue(test_network_node_1.sent_msg_with_id(msg_id))
+        msg_id = list(test_network_node_1.get_sent_messages().keys())[0]
         self.assertTrue(test_network_node_2.received_msg_with_id(msg_id))
 
         test_network_node_1.disconnect_from_network_node(test_network_node_2.get_id())

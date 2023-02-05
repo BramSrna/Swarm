@@ -1,4 +1,4 @@
-from swarm.swarm_task import SwarmTask
+from swarm.swarm_task.swarm_task import SwarmTask
 from federated_learning.federated_learning_model import FederatedLearningModel
 
 

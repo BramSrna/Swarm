@@ -4,11 +4,11 @@ import time
 import pytest
 
 from network_manager_test.network_node_test_class import NetworkNodeTestClass
-from swarm.swarm_task import SwarmTask
+from swarm.swarm_task.swarm_task import SwarmTask
 from swarm.swarm_bot import SwarmBot
 from swarm.swarm_manager import SwarmManager
 from network_manager.network_connectivity_level import NetworkConnectivityLevel
-from swarm.swarm_task_bundle import SwarmTaskBundle
+from swarm.swarm_task.swarm_task_bundle import SwarmTaskBundle
 
 
 class SimpleTask(SwarmTask):

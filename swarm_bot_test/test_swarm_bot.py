@@ -3,9 +3,9 @@ import unittest
 import time
 
 from network_manager_test.network_node_test_class import NetworkNodeTestClass
-from swarm.swarm_task import SwarmTask
+from swarm.swarm_task.swarm_task import SwarmTask
 from swarm.swarm_bot import SwarmBot
-from swarm.swarm_task_bundle import SwarmTaskBundle
+from swarm.swarm_task.swarm_task_bundle import SwarmTaskBundle
 
 
 class SimpleTask(SwarmTask):
@@ -33,7 +33,8 @@ class TestSwarmBot(NetworkNodeTestClass):
 
         self.assertFalse(test_task_bundle.is_complete())
 
-        test_swarm_bot.receive_task_bundle(test_task_bundle)
+        accepted = test_swarm_bot.receive_task_bundle(test_task_bundle)
+        self.assertTrue(accepted)
 
         self.wait_for_idle_network()
 

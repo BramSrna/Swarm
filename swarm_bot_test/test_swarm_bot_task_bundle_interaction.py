@@ -3,9 +3,9 @@ import unittest
 import time
 
 from network_manager_test.network_node_test_class import NetworkNodeTestClass
-from swarm.swarm_task import SwarmTask
+from swarm.swarm_task.swarm_task import SwarmTask
 from swarm.swarm_bot import SwarmBot
-from swarm.swarm_task_bundle import SwarmTaskBundle
+from swarm.swarm_task.swarm_task_bundle import SwarmTaskBundle
 
 
 class SimpleTask(SwarmTask):
@@ -186,6 +186,39 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
 
         self.assertTrue(test_task_bundle.is_complete())
 
+    def test_tasks_are_only_run_once(self):
+        test_swarm_bot_1 = self.create_network_node(SwarmBot)
+        test_swarm_bot_2 = self.create_network_node(SwarmBot)
+        test_swarm_bot_3 = self.create_network_node(SwarmBot)
+
+        test_swarm_bot_1.startup()
+        test_swarm_bot_2.startup()
+        test_swarm_bot_3.startup()
+
+        test_swarm_bot_1.connect_to_network_node(test_swarm_bot_2)
+        test_swarm_bot_1.connect_to_network_node(test_swarm_bot_3)
+
+        test_swarm_bot_2.connect_to_network_node(test_swarm_bot_1)
+        test_swarm_bot_2.connect_to_network_node(test_swarm_bot_3)
+
+        test_swarm_bot_3.connect_to_network_node(test_swarm_bot_1)
+        test_swarm_bot_3.connect_to_network_node(test_swarm_bot_2)
+
+        test_task_bundle = SwarmTaskBundle()
+        test_task_bundle.add_task(SimpleTask, 1)
+
+        check_val = test_swarm_bot_1.receive_task_bundle(test_task_bundle)
+        self.assertTrue(check_val)
+
+        self.wait_for_idle_network()
+
+        task = test_task_bundle.get_tasks()[0]
+
+        executed_by_1 = (task in test_swarm_bot_1.get_task_execution_history()) and (task not in test_swarm_bot_2.get_task_execution_history()) and (task not in test_swarm_bot_3.get_task_execution_history())
+        executed_by_2 = (task not in test_swarm_bot_1.get_task_execution_history()) and (task in test_swarm_bot_2.get_task_execution_history()) and (task not in test_swarm_bot_3.get_task_execution_history())
+        executed_by_3 = (task not in test_swarm_bot_1.get_task_execution_history()) and (task not in test_swarm_bot_2.get_task_execution_history()) and (task in test_swarm_bot_3.get_task_execution_history())
+
+        self.assertTrue(executed_by_1 or executed_by_2 or executed_by_3)
 
 
 if __name__ == "__main__":

@@ -34,4 +34,3 @@ class SwarmTaskBundle(object):
         for task in self.tasks:
             status += "\t{}: {}\n".format(task.get_id(), task.is_complete())
         return status
-

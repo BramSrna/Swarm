@@ -320,6 +320,7 @@ class NetworkNode(MessageChannelUser):
 
         @return [bool] True if the node has received a message with the given ID. False otherwise.
         """
+        print(self.rcvd_messages)
         return msg_id in self.rcvd_messages
 
     def sent_msg_with_id(self, msg_id: int) -> bool:
@@ -432,7 +433,7 @@ class NetworkNode(MessageChannelUser):
         message_payload = message.get_message_payload()
         original_message_id = message_payload["ORIGINAL_MESSAGE_ID"]
         if original_message_id not in self.response_locks:
-            raise Exception("ERROR: Received message response for message that was never sent: {}".format(original_message_id))
+            raise Exception("ERROR: Received message response for message that was never sent: {}".format(message.get_message_payload()))
         self.response_locks[original_message_id]["RESPONSE"] = message
         with self.response_locks[original_message_id]["LOCK"]:
             self.response_locks[original_message_id]["LOCK"].notify_all()
