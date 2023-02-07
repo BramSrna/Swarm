@@ -44,6 +44,7 @@ class SwarmBot(NetworkNode):
         self.assign_msg_handler(str(MessageTypes.START_TASK_EXECUTION), self.handle_start_task_execution_message)
         self.assign_msg_handler(str(MessageTypes.EXECUTION_GROUP_TEARDOWN), self.handle_execution_group_teardown_message)
         self.assign_msg_handler(str(MessageTypes.DELETE_FROM_SWARM_MEMORY), self.handle_delete_from_swarm_memory_message)
+        self.assign_msg_handler(str(MessageTypes.TASK_OUTPUT), self.handle_task_output_message)
 
     def startup(self):
         NetworkNode.startup(self)
@@ -63,20 +64,21 @@ class SwarmBot(NetworkNode):
     def get_assigned_task(self):
         return self.assigned_task
 
-    def receive_task_bundle(self, new_task_bundle):
+    def receive_task_bundle(self, new_task_bundle, listener_bot_id=None):
         if new_task_bundle.get_req_num_bots() - 1 > len(self.msg_channels):
             return False
 
         tasks = new_task_bundle.get_tasks()
         for i in range(len(tasks)):
             curr_task = tasks[i]
-            self.swarm_memory_interface.write_to_swarm_memory(
+            self.write_to_swarm_memory(
                 curr_task.get_id(),
                 {
                     "TASK": curr_task,
                     "PARENT_BUNDLE_ID": new_task_bundle.get_id(),
                     "REQ_NUM_BOTS": new_task_bundle.get_req_num_bots(),
-                    "INDEX_IN_BUNDLE": i
+                    "INDEX_IN_BUNDLE": i,
+                    "LISTENER_ID": listener_bot_id
                 },
                 SwarmTask.__name__
             )
@@ -182,6 +184,9 @@ class SwarmBot(NetworkNode):
         with self.execution_group_lock:
             self.execution_group_lock.notify_all()
 
+    def handle_task_output_message(self, message):
+        pass
+
     def task_executor_loop(self):
         while (not self.run_node.is_set()) and (not self.run_task_executor.is_set()):
             self.task_queue_has_values.wait()
@@ -197,6 +202,7 @@ class SwarmBot(NetworkNode):
                     req_num_bots = next_task_info["REQ_NUM_BOTS"]
                     bundle_id = next_task_info["PARENT_BUNDLE_ID"]
                     index_in_bundle = next_task_info["INDEX_IN_BUNDLE"]
+                    listener_id = next_task_info["LISTENER_ID"]
 
                     if req_num_bots > 1:
                         if index_in_bundle == 0:
@@ -252,8 +258,9 @@ class SwarmBot(NetworkNode):
                         self.assigned_task.execute_task()
                         curr_execution += 1
 
-                    for task_execution_listener in self.task_execution_listeners:
-                        task_execution_listener.notify_task_completion(self.assigned_task.get_id(), self.assigned_task.get_task_output())
+                    if listener_id is not None:
+                        print("SENDING TO LISTENER")
+                        self.send_directed_message(listener_id, MessageTypes.TASK_OUTPUT, {"TASK_ID": next_task_id, "TASK_OUTPUT": self.assigned_task.get_task_output()}, False)
 
                     self.assigned_task = None
                 else:

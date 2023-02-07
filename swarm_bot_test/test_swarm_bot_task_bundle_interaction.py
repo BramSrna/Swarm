@@ -6,6 +6,7 @@ from network_manager_test.network_node_test_class import NetworkNodeTestClass
 from swarm.swarm_task.swarm_task import SwarmTask
 from swarm.swarm_bot import SwarmBot
 from swarm.swarm_task.swarm_task_bundle import SwarmTaskBundle
+from swarm.message_types import MessageTypes
 
 
 class SimpleTask(SwarmTask):
@@ -20,6 +21,9 @@ class SimpleTask(SwarmTask):
     def execute_task(self):
         time.sleep(self.sleep_time)
         self.task_complete = True
+
+    def get_task_output(self):
+        return self.sleep_time
 
 
 class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
@@ -219,6 +223,37 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
         executed_by_3 = (task not in test_swarm_bot_1.get_task_execution_history()) and (task not in test_swarm_bot_2.get_task_execution_history()) and (task in test_swarm_bot_3.get_task_execution_history())
 
         self.assertTrue(executed_by_1 or executed_by_2 or executed_by_3)
+
+    def test_can_get_output_of_task_from_bot(self):
+        listener_bot = self.create_network_node(SwarmBot)
+        listener_bot.startup()
+
+        listener_bot.set_task_executor_status(False)
+
+        test_swarm_bot_1 = self.create_network_node(SwarmBot)
+        test_swarm_bot_1.startup()
+
+        test_swarm_bot_1.connect_to_network_node(listener_bot)
+        listener_bot.connect_to_network_node(test_swarm_bot_1)
+
+        test_task_bundle = SwarmTaskBundle()
+        test_task_bundle.add_task(SimpleTask, 1)
+
+        can_execute = test_swarm_bot_1.receive_task_bundle(test_task_bundle, listener_bot_id=listener_bot.get_id())
+        self.assertTrue(can_execute)
+
+        self.wait_for_idle_network()
+
+        self.assertTrue(test_task_bundle.is_complete())
+
+        rcvd_msgs = listener_bot.get_received_messages().values()
+        task_outputs = []
+        for msg in rcvd_msgs:
+            if msg[0] == MessageTypes.TASK_OUTPUT:
+                self.assertEqual(1, msg[1])
+                self.assertEqual(3, msg[2].get_message_payload()["TASK_OUTPUT"])
+                task_outputs.append(msg)
+        self.assertGreater(len(task_outputs), 0)
 
 
 if __name__ == "__main__":
