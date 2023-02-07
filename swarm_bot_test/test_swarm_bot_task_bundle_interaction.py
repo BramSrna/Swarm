@@ -251,7 +251,52 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
         for msg in rcvd_msgs:
             if msg[0] == MessageTypes.TASK_OUTPUT:
                 self.assertEqual(1, msg[1])
-                self.assertEqual(3, msg[2].get_message_payload()["TASK_OUTPUT"])
+                self.assertEqual(3, msg[2].get_message_payload()["TASK_OUTPUT"][SimpleTask.__name__][0])
+                task_outputs.append(msg)
+        self.assertGreater(len(task_outputs), 0)
+
+    def test_can_get_output_of_task_from_bot_for_task_that_requires_multiple_bots(self):
+        listener_bot = self.create_network_node(SwarmBot)
+        listener_bot.startup()
+
+        listener_bot.set_task_executor_status(False)
+
+        test_swarm_bot_1 = self.create_network_node(SwarmBot)
+        test_swarm_bot_2 = self.create_network_node(SwarmBot)
+        test_swarm_bot_3 = self.create_network_node(SwarmBot)
+
+        test_swarm_bot_1.startup()
+        test_swarm_bot_2.startup()
+        test_swarm_bot_3.startup()
+
+        test_swarm_bot_1.connect_to_network_node(test_swarm_bot_2)
+        test_swarm_bot_1.connect_to_network_node(test_swarm_bot_3)
+
+        test_swarm_bot_2.connect_to_network_node(test_swarm_bot_1)
+        test_swarm_bot_2.connect_to_network_node(test_swarm_bot_3)
+
+        test_swarm_bot_3.connect_to_network_node(test_swarm_bot_1)
+        test_swarm_bot_3.connect_to_network_node(test_swarm_bot_2)
+
+        test_swarm_bot_1.connect_to_network_node(listener_bot)
+        listener_bot.connect_to_network_node(test_swarm_bot_1)
+
+        test_task_bundle = SwarmTaskBundle()
+        test_task_bundle.add_task(SimpleTask, 3)
+
+        can_execute = test_swarm_bot_1.receive_task_bundle(test_task_bundle, listener_bot_id=listener_bot.get_id())
+        self.assertTrue(can_execute)
+
+        self.wait_for_idle_network()
+
+        self.assertTrue(test_task_bundle.is_complete())
+
+        rcvd_msgs = listener_bot.get_received_messages().values()
+        task_outputs = []
+        for msg in rcvd_msgs:
+            if msg[0] == MessageTypes.TASK_OUTPUT:
+                self.assertEqual(1, msg[1])
+                self.assertEqual([3, 3, 3], msg[2].get_message_payload()["TASK_OUTPUT"][SimpleTask.__name__])
                 task_outputs.append(msg)
         self.assertGreater(len(task_outputs), 0)
 
