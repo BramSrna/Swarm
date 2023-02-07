@@ -44,6 +44,7 @@ class SwarmBot(NetworkNode):
         self.assign_msg_handler(str(MessageTypes.START_TASK_EXECUTION), self.handle_start_task_execution_message)
         self.assign_msg_handler(str(MessageTypes.EXECUTION_GROUP_TEARDOWN), self.handle_execution_group_teardown_message)
         self.assign_msg_handler(str(MessageTypes.DELETE_FROM_SWARM_MEMORY), self.handle_delete_from_swarm_memory_message)
+        self.assign_msg_handler(str(MessageTypes.TASK_OUTPUT), self.handle_task_output_message)
 
     def startup(self):
         NetworkNode.startup(self)
@@ -63,20 +64,21 @@ class SwarmBot(NetworkNode):
     def get_assigned_task(self):
         return self.assigned_task
 
-    def receive_task_bundle(self, new_task_bundle):
+    def receive_task_bundle(self, new_task_bundle, listener_bot_id=None):
         if new_task_bundle.get_req_num_bots() - 1 > len(self.msg_channels):
             return False
 
         tasks = new_task_bundle.get_tasks()
         for i in range(len(tasks)):
             curr_task = tasks[i]
-            self.swarm_memory_interface.write_to_swarm_memory(
+            self.write_to_swarm_memory(
                 curr_task.get_id(),
                 {
                     "TASK": curr_task,
                     "PARENT_BUNDLE_ID": new_task_bundle.get_id(),
                     "REQ_NUM_BOTS": new_task_bundle.get_req_num_bots(),
-                    "INDEX_IN_BUNDLE": i
+                    "INDEX_IN_BUNDLE": i,
+                    "LISTENER_ID": listener_bot_id
                 },
                 SwarmTask.__name__
             )
@@ -128,6 +130,12 @@ class SwarmBot(NetworkNode):
         with self.execution_group_lock:
             self.execution_group_lock.notify_all()
 
+    def received_all_required_task_outputs(self, execution_group):
+        for _, task_info in execution_group.items():
+            if task_info["OUTPUT"] is None:
+                return False
+        return True
+
     def handle_swarm_memory_object_location_message(self, message):
         msg_payload = message.get_message_payload()
         data_type = msg_payload["DATA_TYPE"]
@@ -158,7 +166,10 @@ class SwarmBot(NetworkNode):
         if len(self.execution_group.keys()) < self.max_execution_group_size:
             acceptance_status = True
         self.respond_to_message(message, {"ACCEPTANCE_STATUS": acceptance_status})
-        self.execution_group[message.get_sender_id()] = None
+        self.execution_group[message.get_sender_id()] = {
+            "TASK_TYPE": message.get_message_payload()["TASK_TYPE"],
+            "OUTPUT": None
+        }
         with self.execution_group_lock:
             self.execution_group_lock.notify_all()
 
@@ -173,6 +184,7 @@ class SwarmBot(NetworkNode):
             self.execution_group_lock.notify_all()
 
     def handle_start_task_execution_message(self, message):
+        self.execution_group = message.get_message_payload()["EXECUTION_GROUP_INFO"]
         self.start_execution = True
         with self.execution_group_lock:
             self.execution_group_lock.notify_all()
@@ -181,6 +193,17 @@ class SwarmBot(NetworkNode):
         self.execution_group = {}
         with self.execution_group_lock:
             self.execution_group_lock.notify_all()
+
+    def handle_task_output_message(self, message):
+        msg_payload = message.get_message_payload()
+        task_type = msg_payload["TASK_TYPE"]
+        task_output = msg_payload["TASK_OUTPUT"][task_type][0]
+        bot_id = message.get_sender_id()
+
+        if bot_id in self.execution_group:
+            self.execution_group[message.get_sender_id()]["OUTPUT"] = task_output
+            with self.execution_group_lock:
+                self.execution_group_lock.notify_all()
 
     def task_executor_loop(self):
         while (not self.run_node.is_set()) and (not self.run_task_executor.is_set()):
@@ -197,13 +220,19 @@ class SwarmBot(NetworkNode):
                     req_num_bots = next_task_info["REQ_NUM_BOTS"]
                     bundle_id = next_task_info["PARENT_BUNDLE_ID"]
                     index_in_bundle = next_task_info["INDEX_IN_BUNDLE"]
+                    listener_id = next_task_info["LISTENER_ID"]
+                    task_type = next_task.__class__.__name__
+
+                    self.execution_group = {
+                        self.get_id(): {
+                            "TASK_TYPE": next_task.__class__.__name__,
+                            "OUTPUT": None
+                        }
+                    }
 
                     if req_num_bots > 1:
                         if index_in_bundle == 0:
                             print("CREATING EXECUTION GROUP")
-                            self.execution_group = {
-                                self.get_id(): None
-                            }
                             self.execution_group_ledger[bundle_id] = self.get_id()
                             self.max_execution_group_size = req_num_bots
                             self.send_propagation_message(MessageTypes.EXECUTION_GROUP_CREATION, {"TASK_BUNDLE_ID": bundle_id, "OWNER_ID": self.get_id()})
@@ -217,7 +246,7 @@ class SwarmBot(NetworkNode):
 
                             for bot_id in list(self.execution_group.keys()):
                                 if bot_id != self.get_id():
-                                    self.send_directed_message(bot_id, MessageTypes.START_TASK_EXECUTION, {}, False)
+                                    self.send_directed_message(bot_id, MessageTypes.START_TASK_EXECUTION, {"EXECUTION_GROUP_INFO": self.execution_group}, False)
 
                             print("LEADER STARTING EXECUTION\n")
                         else:
@@ -228,10 +257,13 @@ class SwarmBot(NetworkNode):
                                     if not check:
                                         raise Exception("Execution group was not created within time limit.")
                             self.start_execution = False
-                            response = self.send_directed_message(self.execution_group_ledger[bundle_id], MessageTypes.REQUEST_JOIN_EXECUTION_GROUP, {"TASK_BUNDLE_ID": bundle_id}, True).get_message_payload()
+                            response = self.send_directed_message(self.execution_group_ledger[bundle_id], MessageTypes.REQUEST_JOIN_EXECUTION_GROUP, {"TASK_BUNDLE_ID": bundle_id, "TASK_TYPE": task_type}, True).get_message_payload()
                             if not response["ACCEPTANCE_STATUS"]:
                                 continue
                             print("ACCEPTED\n")
+
+                            if listener_id is not None:
+                                listener_id = self.execution_group_ledger[bundle_id]
 
                             if not self.start_execution:
                                 with self.execution_group_lock:
@@ -252,8 +284,26 @@ class SwarmBot(NetworkNode):
                         self.assigned_task.execute_task()
                         curr_execution += 1
 
-                    for task_execution_listener in self.task_execution_listeners:
-                        task_execution_listener.notify_task_completion(self.assigned_task.get_id(), self.assigned_task.get_task_output())
+                    self.execution_group[self.get_id()]["OUTPUT"] = self.assigned_task.get_task_output()
+
+                    if listener_id is not None:
+                        if (req_num_bots > 1) and (index_in_bundle == 0):
+                            while not self.received_all_required_task_outputs(self.execution_group):
+                                with self.execution_group_lock:
+                                    check = self.execution_group_lock.wait(10)
+                                    if not check:
+                                        raise Exception("Did not receive task outputs in time.")
+
+                        final_output = {}
+                        for bot_id, task_info in self.execution_group.items():
+                            task_type = task_info["TASK_TYPE"]
+                            task_output = task_info["OUTPUT"]
+                            if task_type not in final_output:
+                                final_output[task_type] = []
+
+                            final_output[task_type].append(task_output)
+                        print("SENDING TASK OUTPUT")
+                        self.send_directed_message(listener_id, MessageTypes.TASK_OUTPUT, {"TASK_ID": next_task_id, "TASK_OUTPUT": final_output, "TASK_TYPE": task_type}, False)
 
                     self.assigned_task = None
                 else:

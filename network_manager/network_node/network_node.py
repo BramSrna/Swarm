@@ -388,7 +388,8 @@ class NetworkNode(MessageChannelUser):
         for _, msg_info in self.rcvd_messages.items():
             msg_id = msg_info["MSG"].get_id()
             msg_type = msg_info["MSG"].get_message_type()
-            rcvd_msgs[msg_id] = (msg_type, msg_info["NUM_TIMES_RCVD"])
+            rcvd_msgs[msg_id] = (msg_type, msg_info["NUM_TIMES_RCVD"], msg_info["MSG"])
+        print(rcvd_msgs)
         return rcvd_msgs
 
     def get_num_ignored_msgs(self) -> int:

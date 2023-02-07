@@ -21,6 +21,9 @@ class SimpleTask(SwarmTask):
         time.sleep(self.sleep_time)
         self.task_complete = True
 
+    def get_task_output(self):
+        return self.sleep_time
+
 
 class TestSwarmBot(NetworkNodeTestClass):
     def test_swarm_bot_will_execute_task_when_not_already_executing_a_task(self):

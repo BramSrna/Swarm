@@ -21,6 +21,9 @@ class SimpleTask(SwarmTask):
         time.sleep(self.sleep_time)
         self.task_complete = True
 
+    def get_task_output(self):
+        return self.sleep_time
+
 
 class TestSwarmBotTaskInbox(NetworkNodeTestClass):
     def test_incoming_task_bundle_will_be_stored_in_swarm_memory(self):
