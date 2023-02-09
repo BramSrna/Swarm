@@ -218,9 +218,15 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
 
         task = test_task_bundle.get_tasks()[0]
 
-        executed_by_1 = (task in test_swarm_bot_1.get_task_execution_history()) and (task not in test_swarm_bot_2.get_task_execution_history()) and (task not in test_swarm_bot_3.get_task_execution_history())
-        executed_by_2 = (task not in test_swarm_bot_1.get_task_execution_history()) and (task in test_swarm_bot_2.get_task_execution_history()) and (task not in test_swarm_bot_3.get_task_execution_history())
-        executed_by_3 = (task not in test_swarm_bot_1.get_task_execution_history()) and (task not in test_swarm_bot_2.get_task_execution_history()) and (task in test_swarm_bot_3.get_task_execution_history())
+        executed_by_1 = (task in test_swarm_bot_1.get_task_execution_history()) and \
+            (task not in test_swarm_bot_2.get_task_execution_history()) and \
+            (task not in test_swarm_bot_3.get_task_execution_history())
+        executed_by_2 = (task not in test_swarm_bot_1.get_task_execution_history()) and \
+            (task in test_swarm_bot_2.get_task_execution_history()) and \
+            (task not in test_swarm_bot_3.get_task_execution_history())
+        executed_by_3 = (task not in test_swarm_bot_1.get_task_execution_history()) and \
+            (task not in test_swarm_bot_2.get_task_execution_history()) and \
+            (task in test_swarm_bot_3.get_task_execution_history())
 
         self.assertTrue(executed_by_1 or executed_by_2 or executed_by_3)
 

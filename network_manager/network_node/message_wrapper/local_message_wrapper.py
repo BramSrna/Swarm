@@ -23,5 +23,13 @@ class LocalMessageWrapper(MessageWrapper):
 
     @return None
     """
-    def __init__(self, msg_id: int, sender_id: int, target_node_id: int, message_type: str, message_payload: dict, propagation_flag: bool) -> None:
+    def __init__(
+        self,
+        msg_id: int,
+        sender_id: int,
+        target_node_id: int,
+        message_type: str,
+        message_payload: dict,
+        propagation_flag: bool
+    ) -> None:
         super().__init__(msg_id, sender_id, target_node_id, message_type, message_payload, propagation_flag)

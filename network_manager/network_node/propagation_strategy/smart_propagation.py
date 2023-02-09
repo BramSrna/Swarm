@@ -109,6 +109,7 @@ class SmartPropagation(PropagationStrategy):
         self.add_node_to_tracker_if_not_present(sender_id)
 
         curr_percent = self.avg_receive_time_tracker[sender_id]["NUM_RCVD_MSGS"] / 100
-        new_avg = (self.avg_receive_time_tracker[sender_id]["CURR_AVG"] * curr_percent) + (time_receive_diff * (1 - curr_percent))
+        new_avg = (self.avg_receive_time_tracker[sender_id]["CURR_AVG"] * curr_percent) + \
+            (time_receive_diff * (1 - curr_percent))
         self.avg_receive_time_tracker[sender_id]["CURR_AVG"] = new_avg
         self.avg_receive_time_tracker[sender_id]["NUM_RCVD_MSGS"] += 1

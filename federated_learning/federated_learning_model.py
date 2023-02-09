@@ -18,6 +18,46 @@ class FederatedLearningModel(object):
     def train(self, data, targets):
         self.current_model.partial_fit(data, targets)
 
+    def coefficients_equal(self, coef_1, coef_2):
+        if (coef_1 is None) and (coef_2 is not None):
+            return False
+        elif (coef_1 is not None) and (coef_2 is None):
+            return False
+        elif (coef_1 is not None) and (coef_2 is not None):
+            if coef_1.__class__.__name__ != coef_2.__class__.__name__:
+                return False
+
+            if len(coef_1) != len(coef_2):
+                return False
+
+            for i in range(len(coef_1)):
+                if coef_1[i] != coef_2[i]:
+                    return False
+
+        return True
+
+    def intercepts_equal(self, intercept_1, intercept_2):
+        if (intercept_1 is None) and (intercept_2 is not None):
+            return False
+        elif (intercept_1 is not None) and (intercept_2 is None):
+            return False
+        elif (intercept_1 is not None) and (intercept_2 is not None):
+            if intercept_1.__class__.__name__ != intercept_2.__class__.__name__:
+                return False
+
+            if isinstance(intercept_1, float):
+                if intercept_1 != intercept_2:
+                    return False
+            else:
+                if len(intercept_1) != len(intercept_2):
+                    return False
+
+                for i in range(len(intercept_1)):
+                    if intercept_1[i] != intercept_2[i]:
+                        return False
+
+        return True
+
     def __eq__(self, other_model):
         if other_model is None:
             return False
@@ -25,44 +65,10 @@ class FederatedLearningModel(object):
         curr_coef = self.current_model.coef_
         other_ceof = other_model.get_coef()
 
-        if (curr_coef is None) and (other_ceof is None):
-            pass
-        elif (((curr_coef is None) and (other_ceof is not None)) or ((curr_coef is not None) and (other_ceof is None))):
-            return False
-        else:
-            if curr_coef.__class__.__name__ != other_ceof.__class__.__name__:
-                return False
-
-            if len(curr_coef) != len(other_ceof):
-                return False
-
-            for i in range(len(curr_coef)):
-                if curr_coef[i] != other_ceof[i]:
-                    return False
-
         curr_intercept = self.current_model.intercept_
         other_intercept = other_model.get_intercept()
 
-        if (curr_intercept is None) and (other_intercept is None):
-            pass
-        elif (((curr_intercept is None) and (other_intercept is not None)) or ((curr_intercept is not None) and (other_intercept is None))):
-            return False
-        else:
-            if curr_intercept.__class__.__name__ != other_intercept.__class__.__name__:
-                return False
-
-            if isinstance(curr_intercept, float):
-                if curr_intercept != other_intercept:
-                    return False
-            else:
-                if len(curr_intercept) != len(other_intercept):
-                    return False
-
-                for i in range(len(curr_intercept)):
-                    if curr_intercept[i] != other_intercept[i]:
-                        return False
-
-        return True
+        return self.coefficients_equal(curr_coef, other_ceof) and self.intercepts_equal(curr_intercept, other_intercept)
 
     def to_block(self):
         return FederatedLearningBlock(self.current_model.coef_, self.current_model.intercept_, None, None)
