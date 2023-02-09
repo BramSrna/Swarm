@@ -331,6 +331,7 @@ class SwarmBot(NetworkNode):
                 self.execution_group[self.get_id()]["OUTPUT"] = self.assigned_task.get_task_output()
 
                 if listener_id is not None:
+                    print("LISTENER ID: {}".format(listener_id))
                     self.wait_for_task_outputs(req_num_bots, index_in_bundle)
 
                     final_output = {}
