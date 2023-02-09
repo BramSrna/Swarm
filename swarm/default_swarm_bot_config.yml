@@ -2,3 +2,4 @@ propagation_strategy: "SmartPropagation"
 message_channel: "LocalMessageChannel"
 message_wrapper: "LocalMessageWrapper"
 max_task_executions: 10000
+task_scheduling_algorithm: "SimpleTaskSort"

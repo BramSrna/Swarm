@@ -74,7 +74,10 @@ class TestNetworkManager(NetworkNodeTestClass):
         connections = new_network_node.get_connections()
 
         self.assertEqual(1, len(connections))
-        self.assertIn(connections[0], [test_network_node_1.get_id(), test_network_node_2.get_id(), test_network_node_3.get_id()])
+        self.assertIn(
+            connections[0],
+            [test_network_node_1.get_id(), test_network_node_2.get_id(), test_network_node_3.get_id()]
+        )
 
     def test_new_node_added_in_centralized_network_will_be_connected_to_central_network_node(self):
         test_network_manager = self.create_network_manager(NetworkConnectivityLevel.CENTRALIZED)

@@ -9,7 +9,15 @@ to send through MessageChannel objects
 
 
 class MessageWrapper(ABC):
-    def __init__(self, msg_id: int, sender_id: int, target_node_id: int, message_type: str, message_payload: dict, propagation_flag: bool):
+    def __init__(
+        self,
+        msg_id: int,
+        sender_id: int,
+        target_node_id: int,
+        message_type: str,
+        message_payload: dict,
+        propagation_flag: bool
+    ):
         """
         init
 

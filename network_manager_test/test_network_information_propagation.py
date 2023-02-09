@@ -8,9 +8,18 @@ from network_manager.network_node.network_node import NetworkNode
 
 class TestNetworkInformationPropagation(NetworkNodeTestClass):
     def test_all_nodes_in_the_network_receive_a_sent_message_when_naive_propagation_is_used_in_double_layer_network(self):
-        test_network_node_1 = self.create_network_node(NetworkNode, additional_config_dict={"propagation_strategy": "NaivePropagation"})
-        test_network_node_2 = self.create_network_node(NetworkNode, additional_config_dict={"propagation_strategy": "NaivePropagation"})
-        test_network_node_3 = self.create_network_node(NetworkNode, additional_config_dict={"propagation_strategy": "NaivePropagation"})
+        test_network_node_1 = self.create_network_node(
+            NetworkNode,
+            additional_config_dict={"propagation_strategy": "NaivePropagation"}
+        )
+        test_network_node_2 = self.create_network_node(
+            NetworkNode,
+            additional_config_dict={"propagation_strategy": "NaivePropagation"}
+        )
+        test_network_node_3 = self.create_network_node(
+            NetworkNode,
+            additional_config_dict={"propagation_strategy": "NaivePropagation"}
+        )
 
         test_network_node_1.startup()
         test_network_node_2.startup()
@@ -22,7 +31,7 @@ class TestNetworkInformationPropagation(NetworkNodeTestClass):
         test_network_node_2.connect_to_network_node(test_network_node_1)
         test_network_node_3.connect_to_network_node(test_network_node_1)
 
-        msg_id = test_network_node_1.create_propagation_message("TEST", {})
+        msg_id = test_network_node_1.send_propagation_message("TEST", {})
 
         self.wait_for_idle_network()
 
@@ -30,13 +39,34 @@ class TestNetworkInformationPropagation(NetworkNodeTestClass):
         self.assertTrue(test_network_node_3.received_msg_with_id(msg_id))
 
     def test_all_nodes_in_the_network_receive_a_sent_message_when_naive_propagation_is_used_in_multi_layer_network(self):
-        test_network_node_1 = self.create_network_node(NetworkNode, additional_config_dict={"propagation_strategy": "NaivePropagation"})
-        test_network_node_2 = self.create_network_node(NetworkNode, additional_config_dict={"propagation_strategy": "NaivePropagation"})
-        test_network_node_3 = self.create_network_node(NetworkNode, additional_config_dict={"propagation_strategy": "NaivePropagation"})
-        test_network_node_4 = self.create_network_node(NetworkNode, additional_config_dict={"propagation_strategy": "NaivePropagation"})
-        test_network_node_5 = self.create_network_node(NetworkNode, additional_config_dict={"propagation_strategy": "NaivePropagation"})
-        test_network_node_6 = self.create_network_node(NetworkNode, additional_config_dict={"propagation_strategy": "NaivePropagation"})
-        test_network_node_7 = self.create_network_node(NetworkNode, additional_config_dict={"propagation_strategy": "NaivePropagation"})
+        test_network_node_1 = self.create_network_node(
+            NetworkNode,
+            additional_config_dict={"propagation_strategy": "NaivePropagation"}
+        )
+        test_network_node_2 = self.create_network_node(
+            NetworkNode,
+            additional_config_dict={"propagation_strategy": "NaivePropagation"}
+        )
+        test_network_node_3 = self.create_network_node(
+            NetworkNode,
+            additional_config_dict={"propagation_strategy": "NaivePropagation"}
+        )
+        test_network_node_4 = self.create_network_node(
+            NetworkNode,
+            additional_config_dict={"propagation_strategy": "NaivePropagation"}
+        )
+        test_network_node_5 = self.create_network_node(
+            NetworkNode,
+            additional_config_dict={"propagation_strategy": "NaivePropagation"}
+        )
+        test_network_node_6 = self.create_network_node(
+            NetworkNode,
+            additional_config_dict={"propagation_strategy": "NaivePropagation"}
+        )
+        test_network_node_7 = self.create_network_node(
+            NetworkNode,
+            additional_config_dict={"propagation_strategy": "NaivePropagation"}
+        )
 
         test_network_node_1.startup()
         test_network_node_2.startup()
@@ -64,7 +94,7 @@ class TestNetworkInformationPropagation(NetworkNodeTestClass):
         test_network_node_6.connect_to_network_node(test_network_node_3)
         test_network_node_7.connect_to_network_node(test_network_node_3)
 
-        msg_id = test_network_node_1.create_propagation_message("TEST", {})
+        msg_id = test_network_node_1.send_propagation_message("TEST", {})
 
         self.wait_for_idle_network()
 
@@ -78,11 +108,26 @@ class TestNetworkInformationPropagation(NetworkNodeTestClass):
         self.assertTrue(test_network_node_7.received_msg_with_id(msg_id))
 
     def test_all_nodes_in_the_network_receive_a_sent_message_when_naive_propagation_is_used_in_circular_network(self):
-        test_network_node_1 = self.create_network_node(NetworkNode, additional_config_dict={"propagation_strategy": "NaivePropagation"})
-        test_network_node_2 = self.create_network_node(NetworkNode, additional_config_dict={"propagation_strategy": "NaivePropagation"})
-        test_network_node_3 = self.create_network_node(NetworkNode, additional_config_dict={"propagation_strategy": "NaivePropagation"})
-        test_network_node_4 = self.create_network_node(NetworkNode, additional_config_dict={"propagation_strategy": "NaivePropagation"})
-        test_network_node_5 = self.create_network_node(NetworkNode, additional_config_dict={"propagation_strategy": "NaivePropagation"})
+        test_network_node_1 = self.create_network_node(
+            NetworkNode,
+            additional_config_dict={"propagation_strategy": "NaivePropagation"}
+        )
+        test_network_node_2 = self.create_network_node(
+            NetworkNode,
+            additional_config_dict={"propagation_strategy": "NaivePropagation"}
+        )
+        test_network_node_3 = self.create_network_node(
+            NetworkNode,
+            additional_config_dict={"propagation_strategy": "NaivePropagation"}
+        )
+        test_network_node_4 = self.create_network_node(
+            NetworkNode,
+            additional_config_dict={"propagation_strategy": "NaivePropagation"}
+        )
+        test_network_node_5 = self.create_network_node(
+            NetworkNode,
+            additional_config_dict={"propagation_strategy": "NaivePropagation"}
+        )
 
         test_network_node_1.startup()
         test_network_node_2.startup()
@@ -102,7 +147,7 @@ class TestNetworkInformationPropagation(NetworkNodeTestClass):
         test_network_node_5.connect_to_network_node(test_network_node_4)
         test_network_node_1.connect_to_network_node(test_network_node_5)
 
-        msg_id = test_network_node_1.create_propagation_message("TEST", {})
+        msg_id = test_network_node_1.send_propagation_message("TEST", {})
 
         self.wait_for_idle_network()
 

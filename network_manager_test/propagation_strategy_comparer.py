@@ -19,7 +19,13 @@ detailing how the message was propagated throughout the network.
 
 
 class PropagationStrategyComparer(NetworkNodeIdleListenerInterface):
-    def __init__(self, num_nodes: int, connectivity_percentage: int, num_messages: int, propagation_strategy: PropagationStrategy):
+    def __init__(
+        self,
+        num_nodes: int,
+        connectivity_percentage: int,
+        num_messages: int,
+        propagation_strategy: PropagationStrategy
+    ):
         """
         __init__
 
@@ -126,7 +132,10 @@ class PropagationStrategyComparer(NetworkNodeIdleListenerInterface):
                 rand_node_ind = i
                 while rand_node_ind in connected:
                     rand_node_ind = randint(0, self.num_nodes - 1)
-                self.logger.debug("Connecting {} to {}".format(self.network_nodes[i].get_id(), self.network_nodes[rand_node_ind].get_id()))
+                self.logger.debug("Connecting {} to {}".format(
+                    self.network_nodes[i].get_id(),
+                    self.network_nodes[rand_node_ind].get_id()
+                ))
                 self.network_nodes[i].connect_to_network_node(self.network_nodes[rand_node_ind])
                 connected.append(rand_node_ind)
                 num_connections -= 1
@@ -145,7 +154,7 @@ class PropagationStrategyComparer(NetworkNodeIdleListenerInterface):
         node_ind = 0
         while num_messages > 0:
             node = self.network_nodes[node_ind]
-            msg_id = node.create_propagation_message("TEST", {})
+            msg_id = node.send_propagation_message("TEST", {})
             self.wait_for_idle_network(60)
             for node in self.network_nodes:
                 assert(node.interacted_with_msg_with_id(msg_id))

@@ -14,6 +14,7 @@ from network_manager.network_node.message_wrapper.message_wrapper import Message
 from network_manager.network_node.propagation_strategy.naive_propagation import NaivePropagation
 from network_manager.network_node.propagation_strategy.smart_propagation import SmartPropagation
 from network_manager.network_node.network_node_idle_listener_interface import NetworkNodeIdleListenerInterface
+from network_manager.network_node.network_node_message_types import NetworkNodeMessageTypes
 
 
 """
@@ -47,6 +48,7 @@ class NetworkNode(MessageChannelUser):
 
         self.msg_inbox = []
         self.msg_outbox = []
+        self.response_locks = {}
 
         self.run_node = threading.Event()
         self.msg_inbox_has_values = threading.Event()
@@ -63,13 +65,18 @@ class NetworkNode(MessageChannelUser):
         self.num_processes = 0
 
         self.msg_handler_dict = {}
-        for msg_type, handler in self.msg_handler_dict.items():
-            self.assign_msg_handler(msg_type, handler)
+        self.assign_msg_handler(str(NetworkNodeMessageTypes.MSG_RESPONSE), self.handle_msg_response_message)
 
-        self.config = yaml.load(open(os.path.join(os.path.dirname(__file__), "./default_node_config.yml")), Loader=yaml.FullLoader)
+        self.config = yaml.load(
+            open(os.path.join(os.path.dirname(__file__), "./default_node_config.yml")),
+            Loader=yaml.FullLoader
+        )
         additional_config = {}
         if additional_config_path is not None:
-            additional_config = yaml.load(open(os.path.join(os.path.dirname(__file__), additional_config_path)), Loader=yaml.FullLoader)
+            additional_config = yaml.load(
+                open(os.path.join(os.path.dirname(__file__), additional_config_path)),
+                Loader=yaml.FullLoader
+            )
 
         for key, value in additional_config.items():
             self.config[key] = value
@@ -148,6 +155,8 @@ class NetworkNode(MessageChannelUser):
 
         @return None
         """
+        if msg_type in self.msg_handler_dict:
+            raise Exception("ERROR: Node already has a handler for message type {}".format(msg_type))
         self.msg_handler_dict[msg_type] = handler
 
     def get_id(self) -> int:
@@ -237,12 +246,18 @@ class NetworkNode(MessageChannelUser):
 
         @return None
         """
+        sender_id = message.get_sender_id()
+        if (sender_id is not None) and (sender_id != self.get_id()) and (sender_id not in self.msg_channels):
+            raise Exception("ERROR: Received message from unknown node: {}. Known node list: {}".format(
+                str(sender_id),
+                self.msg_channels.keys()
+            ))
         self.msg_inbox.append(message)
         self.msg_inbox_has_values.set()
 
-    def create_propagation_message(self, message_type: str, message_payload: dict) -> int:
+    def send_propagation_message(self, message_type: str, message_payload: dict) -> int:
         """
-        create_propagation_message
+        send_propagation_message
 
         Creates a message to propagate accross the network and adds it to the
         message outbox.
@@ -263,9 +278,9 @@ class NetworkNode(MessageChannelUser):
 
         return message_id
 
-    def create_directed_message(self, target_node_id: int, message_type: str, message_payload: dict) -> int:
+    def send_directed_message(self, target_node_id: int, message_type: str, message_payload: dict, sync_message: bool) -> int:
         """
-        create_directed_message
+        send_directed_message
 
         Creates a message to send directly to a given node and adds it to the
         message outbox.
@@ -278,7 +293,22 @@ class NetworkNode(MessageChannelUser):
         """
         message_id = self._generate_message_id()
 
-        return self._create_message(target_node_id, message_id, message_type, message_payload, False)
+        message_id = self._create_message(target_node_id, message_id, message_type, message_payload, False)
+        if not sync_message:
+            return None
+        self.response_locks[message_id] = {
+            "LOCK": threading.Condition(),
+            "RESPONSE": None
+        }
+        with self.response_locks[message_id]["LOCK"]:
+            check = self.response_locks[message_id]["LOCK"].wait(10)
+            if not check:
+                raise Exception("ERROR: Did not receive message response within time limit. Message ID: {}".format(message_id))
+        return self.response_locks[message_id]["RESPONSE"]
+
+    def respond_to_message(self, message: MessageWrapper, message_payload: dict):
+        message_payload["ORIGINAL_MESSAGE_ID"] = message.get_id()
+        self.send_directed_message(message.get_sender_id(), NetworkNodeMessageTypes.MSG_RESPONSE, message_payload, False)
 
     def get_message_channels(self) -> None:
         """
@@ -369,7 +399,7 @@ class NetworkNode(MessageChannelUser):
         for _, msg_info in self.rcvd_messages.items():
             msg_id = msg_info["MSG"].get_id()
             msg_type = msg_info["MSG"].get_message_type()
-            rcvd_msgs[msg_id] = (msg_type, msg_info["NUM_TIMES_RCVD"])
+            rcvd_msgs[msg_id] = (msg_type, msg_info["NUM_TIMES_RCVD"], msg_info["MSG"])
         return rcvd_msgs
 
     def get_num_ignored_msgs(self) -> int:
@@ -395,7 +425,8 @@ class NetworkNode(MessageChannelUser):
         @return None
         """
         if not isinstance(new_listener, NetworkNodeIdleListenerInterface):
-            raise Exception("ERROR: The listeners for the NetworkNode must implement the NetworkNodeIdleListenerInterface class.")
+            raise Exception("ERROR: The listeners for the NetworkNode must implement \
+                the NetworkNodeIdleListenerInterface class.")
         self.idle_listeners.append(new_listener)
 
     def is_idle(self) -> bool:
@@ -409,6 +440,17 @@ class NetworkNode(MessageChannelUser):
         @return [bool] True if the node is idle. False otherwise.
         """
         return self.num_processes == 0
+
+    def handle_msg_response_message(self, message):
+        message_payload = message.get_message_payload()
+        original_message_id = message_payload["ORIGINAL_MESSAGE_ID"]
+        if original_message_id not in self.response_locks:
+            raise Exception("ERROR: Received message response for message that was never sent: {}".format(
+                message.get_message_payload()
+            ))
+        self.response_locks[original_message_id]["RESPONSE"] = message
+        with self.response_locks[original_message_id]["LOCK"]:
+            self.response_locks[original_message_id]["LOCK"].notify_all()
 
     def _msg_sender_loop(self) -> None:
         """
@@ -437,7 +479,10 @@ class NetworkNode(MessageChannelUser):
 
                 for target_node_id in targets:
                     if target_node_id not in self.msg_channels:
-                        raise Exception("ERROR: Tried to send message to unknown node ID: {}. Known node list: {}".format(str(target_node_id), self.msg_channels.keys()))
+                        raise Exception("ERROR: Tried to send message to unknown node ID: {}. Known node list: {}".format(
+                            str(target_node_id),
+                            self.msg_channels.keys()
+                        ))
 
                 if len(targets) == 0:
                     raise Exception("ERROR: Tried to send message with no targets: {}".format(str(message)))
@@ -450,7 +495,15 @@ class NetworkNode(MessageChannelUser):
                 self.sent_messages[msg_id]["NUM_TIMES_SENT"] += 1
 
                 for node_id in targets:
-                    self.logger.debug("Sent message. Sender node ID: {}, target node ID: {}, message ID {}, message type: {}, sender message list {}\n\n".format(self.get_id(), target_node_id, msg_id, message.get_message_type(), self.sent_messages))
+                    self.logger.debug("Sent message. Sender node ID: {}, target node ID: {}, message ID {}, message type: {}, \
+                        sender message list {}\n\n".format(
+                            self.get_id(),
+                            target_node_id,
+                            msg_id,
+                            message.get_message_type(),
+                            self.sent_messages
+                        )
+                    )
                     self.msg_channels[node_id].send_message(message)
 
                 self._notify_process_state(False)
@@ -488,11 +541,15 @@ class NetworkNode(MessageChannelUser):
                 message_payload = message.get_message_payload()
                 should_propagate = message.get_propagation_flag()
 
-                self.logger.debug("Received message. receiver node ID: {}, target node ID: {}, message ID {}, message type {}, payload: {}\n\n".format(self.get_id(), target_id, msg_id, message_type, message_payload))
-
-                sender_id = message.get_sender_id()
-                if (sender_id is not None) and (sender_id != self.get_id()) and (sender_id not in self.msg_channels):
-                    raise Exception("ERROR: Received message from unknown node: {}. Known node list: {}".format(str(sender_id), self.msg_channels.keys()))
+                self.logger.debug("Received message. receiver node ID: {}, target node ID: {}, message ID {}, \
+                    message type {}, payload: {}\n\n".format(
+                        self.get_id(),
+                        target_id,
+                        msg_id,
+                        message_type,
+                        message_payload
+                    )
+                )
 
                 if (self.interacted_with_msg_with_id(msg_id)):
                     if msg_id not in self.rcvd_messages:
@@ -505,7 +562,7 @@ class NetworkNode(MessageChannelUser):
                     self.rcvd_messages[msg_id] = {"MSG": message, "NUM_TIMES_RCVD": 1}
 
                     if message_type in self.msg_handler_dict:
-                        self.msg_handler_dict[message_type](self, message)
+                        self.msg_handler_dict[message_type](message)
                     else:
                         self.logger.warning("Warning: Received message type with no assigned handler: " + str(message_type))
 
@@ -557,7 +614,14 @@ class NetworkNode(MessageChannelUser):
         if target_node_id not in self.msg_channels:
             raise Exception("ERROR: Tried to create message for unknown node ID: " + str(target_node_id))
 
-        new_msg = self.message_wrapper_type(message_id, self.get_id(), target_node_id, message_type, message_payload, propagate_message)
+        new_msg = self.message_wrapper_type(
+            message_id,
+            self.get_id(),
+            target_node_id,
+            message_type,
+            message_payload,
+            propagate_message
+        )
 
         self.msg_outbox.append({"MESSAGE": new_msg, "TARGET_ID": target_node_id})
         self.msg_outbox_has_values.set()
