@@ -124,7 +124,6 @@ class SwarmBot(NetworkNode):
                 next_task_id = task_queue.pop(0)
                 next_task = self.swarm_memory_interface.pop_from_swarm_memory(next_task_id)
             task_queue = self.swarm_memory_interface.get_ids_of_contents_of_type(SwarmTask.__name__)
-        print("NEXT TASK IS: {}, {}\n".format(self.get_id(), next_task))
         return next_task
 
     def get_task_bundle_queue(self):
@@ -156,7 +155,6 @@ class SwarmBot(NetworkNode):
                         raise Exception("Did not receive task outputs in time.")
 
     def wait_for_execution_group_members(self, bundle_id, req_num_bots):
-        print("CREATING EXECUTION GROUP")
         self.execution_group_ledger[bundle_id] = self.get_id()
         self.max_execution_group_size = req_num_bots
         self.send_propagation_message(
@@ -169,8 +167,6 @@ class SwarmBot(NetworkNode):
                 if not check:
                     raise Exception("Could not form execution group within time limit.")
 
-        print("HIT TARGET SIZE\n")
-
         for bot_id in list(self.execution_group.keys()):
             if bot_id != self.get_id():
                 self.send_directed_message(
@@ -180,10 +176,7 @@ class SwarmBot(NetworkNode):
                     False
                 )
 
-        print("LEADER STARTING EXECUTION\n")
-
     def join_execution_group(self, bundle_id, task_type):
-        print("JOINING EXECUTION GROUP")
         if bundle_id not in self.execution_group_ledger:
             with self.execution_group_lock:
                 check = self.execution_group_lock.wait(10)
@@ -199,7 +192,6 @@ class SwarmBot(NetworkNode):
         accepted = response.get_message_payload()["ACCEPTANCE_STATUS"]
         if not accepted:
             raise Exception("ERROR: Not able to join execution group.")
-        print("ACCEPTED\n")
 
         listener_id = self.execution_group_ledger[bundle_id]
 
@@ -208,8 +200,6 @@ class SwarmBot(NetworkNode):
                 check = self.execution_group_lock.wait(10)
                 if not check:
                     raise Exception("Did not receive task start signal within time limit.")
-
-        print("STARTING EXECUTION\n")
 
         return listener_id
 
@@ -331,7 +321,6 @@ class SwarmBot(NetworkNode):
                 self.execution_group[self.get_id()]["OUTPUT"] = self.assigned_task.get_task_output()
 
                 if listener_id is not None:
-                    print("LISTENER ID: {}".format(listener_id))
                     self.wait_for_task_outputs(req_num_bots, index_in_bundle)
 
                     final_output = {}
@@ -342,7 +331,6 @@ class SwarmBot(NetworkNode):
                             final_output[task_type] = []
 
                         final_output[task_type].append(task_output)
-                    print("SENDING TASK OUTPUT")
                     self.send_directed_message(
                         listener_id,
                         MessageTypes.TASK_OUTPUT,

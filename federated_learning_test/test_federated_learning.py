@@ -40,8 +40,6 @@ class TestFederatedLearning(NetworkNodeTestClass):
 
         task_output = manager.receive_task_bundle(get_federated_learning_task_bundle())
 
-        print(task_output)
-
         test_input_1 = 5
         test_input_2 = 8
 

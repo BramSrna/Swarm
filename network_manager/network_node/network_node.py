@@ -332,7 +332,6 @@ class NetworkNode(MessageChannelUser):
 
         @return [bool] True if the node has received a message with the given ID. False otherwise.
         """
-        print(self.rcvd_messages)
         return msg_id in self.rcvd_messages
 
     def sent_msg_with_id(self, msg_id: int) -> bool:
@@ -401,7 +400,6 @@ class NetworkNode(MessageChannelUser):
             msg_id = msg_info["MSG"].get_id()
             msg_type = msg_info["MSG"].get_message_type()
             rcvd_msgs[msg_id] = (msg_type, msg_info["NUM_TIMES_RCVD"], msg_info["MSG"])
-        print(rcvd_msgs)
         return rcvd_msgs
 
     def get_num_ignored_msgs(self) -> int:

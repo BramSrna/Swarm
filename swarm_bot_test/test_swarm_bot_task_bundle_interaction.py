@@ -186,8 +186,6 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
 
         self.wait_for_idle_network()
 
-        print(test_task_bundle.status_to_str())
-
         self.assertTrue(test_task_bundle.is_complete())
 
     def test_tasks_are_only_run_once(self):
