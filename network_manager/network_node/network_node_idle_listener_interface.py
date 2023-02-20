@@ -40,7 +40,6 @@ class NetworkNodeIdleListenerInterface(object):
             self.num_busy_nodes -= 1
         else:
             self.num_busy_nodes += 1
-        self.logger.debug("Num busy nodes: {}".format(self.num_busy_nodes))
 
     def network_is_idle(self) -> bool:
         """
@@ -54,7 +53,7 @@ class NetworkNodeIdleListenerInterface(object):
         """
         return self.num_busy_nodes == 0
 
-    def wait_for_idle_network(self, timeout_sec: int = 10) -> bool:
+    def wait_for_idle_network(self, timeout_sec: int = 300) -> bool:
         """
         wait_for_idle_network
 

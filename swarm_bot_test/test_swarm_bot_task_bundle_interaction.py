@@ -13,7 +13,8 @@ class SimpleTask(SwarmTask):
     def __init__(self):
         super().__init__()
         self.task_complete = False
-        self.sleep_time = 3
+        self.sleep_time = 1
+        self.task_output = None
 
     def is_complete(self):
         return self.task_complete
@@ -21,9 +22,10 @@ class SimpleTask(SwarmTask):
     def execute_task(self):
         time.sleep(self.sleep_time)
         self.task_complete = True
+        self.task_output = self.sleep_time
 
     def get_task_output(self):
-        return self.sleep_time
+        return self.task_output
 
 
 class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
@@ -228,7 +230,7 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
 
         self.assertTrue(executed_by_1 or executed_by_2 or executed_by_3)
 
-    def test_can_get_output_of_task_from_bot(self):
+    def test_can_get_output_of_task_from_single_bot(self):
         listener_bot = self.create_network_node(SwarmBot)
         listener_bot.startup()
 
@@ -255,7 +257,7 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
         for msg in rcvd_msgs:
             if msg[0] == MessageTypes.TASK_OUTPUT:
                 self.assertEqual(1, msg[1])
-                self.assertEqual(3, msg[2].get_message_payload()["TASK_OUTPUT"][SimpleTask.__name__][0])
+                self.assertEqual(1, msg[2].get_message_payload()["TASK_OUTPUT"][SimpleTask.__name__][0])
                 task_outputs.append(msg)
         self.assertGreater(len(task_outputs), 0)
 
@@ -300,9 +302,87 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
         for msg in rcvd_msgs:
             if msg[0] == MessageTypes.TASK_OUTPUT:
                 self.assertEqual(1, msg[1])
-                self.assertEqual([3, 3, 3], msg[2].get_message_payload()["TASK_OUTPUT"][SimpleTask.__name__])
+                self.assertEqual([1, 1, 1], msg[2].get_message_payload()["TASK_OUTPUT"][SimpleTask.__name__])
                 task_outputs.append(msg)
         self.assertGreater(len(task_outputs), 0)
+
+    def test_swarm_can_handle_heavy_load_of_single_bot_tasks(self):
+        swarm_bots = []
+        num_bots = 10
+        num_tasks = 10
+        bots_per_task = 1
+
+        while len(swarm_bots) < num_bots:
+            new_bot = self.create_network_node(SwarmBot)
+            new_bot.startup()
+            for bot in swarm_bots:
+                new_bot.connect_to_network_node(bot)
+                bot.connect_to_network_node(new_bot)
+            swarm_bots.append(new_bot)
+
+        listener_bot = self.create_network_node(SwarmBot)
+        listener_bot.startup()
+        listener_bot.set_task_executor_status(False)
+        for bot in swarm_bots:
+            listener_bot.connect_to_network_node(bot)
+            bot.connect_to_network_node(listener_bot)
+
+        for _ in range(num_tasks):
+            new_task_bundle = SwarmTaskBundle()
+            new_task_bundle.add_task(SimpleTask, bots_per_task)
+            can_execute = swarm_bots[0].receive_task_bundle(new_task_bundle, listener_bot_id=listener_bot.get_id())
+            self.assertTrue(can_execute)
+
+        self.wait_for_idle_network()
+            
+        rcvd_msgs = listener_bot.get_received_messages().values()
+        print(rcvd_msgs)
+        task_outputs = []
+        for msg in rcvd_msgs:
+            if msg[0] == MessageTypes.TASK_OUTPUT:
+                self.assertEqual(1, msg[1])
+                self.assertEqual(1, msg[2].get_message_payload()["TASK_OUTPUT"][SimpleTask.__name__][0])
+                task_outputs.append(msg)
+        self.assertEqual(num_tasks, len(task_outputs))
+
+    def test_swarm_can_handle_heavy_load_of_multi_bot_tasks(self):
+        swarm_bots = []
+        num_bots = 3
+        num_tasks = 2
+        bots_per_task = 3
+
+        while len(swarm_bots) < num_bots:
+            new_bot = self.create_network_node(SwarmBot)
+            new_bot.startup()
+            for bot in swarm_bots:
+                new_bot.connect_to_network_node(bot)
+                bot.connect_to_network_node(new_bot)
+            swarm_bots.append(new_bot)
+
+        listener_bot = self.create_network_node(SwarmBot)
+        listener_bot.startup()
+        listener_bot.set_task_executor_status(False)
+        for bot in swarm_bots:
+            listener_bot.connect_to_network_node(bot)
+            bot.connect_to_network_node(listener_bot)
+
+        for _ in range(num_tasks):
+            new_task_bundle = SwarmTaskBundle()
+            new_task_bundle.add_task(SimpleTask, bots_per_task)
+            can_execute = swarm_bots[0].receive_task_bundle(new_task_bundle, listener_bot_id=listener_bot.get_id())
+            self.assertTrue(can_execute)
+
+        self.wait_for_idle_network()
+            
+        rcvd_msgs = listener_bot.get_received_messages().values()
+        print(rcvd_msgs)
+        task_outputs = []
+        for msg in rcvd_msgs:
+            if msg[0] == MessageTypes.TASK_OUTPUT:
+                self.assertEqual(1, msg[1])
+                self.assertEqual(1, msg[2].get_message_payload()["TASK_OUTPUT"][SimpleTask.__name__][0])
+                task_outputs.append(msg)
+        self.assertEqual(num_tasks, len(task_outputs))
 
 
 if __name__ == "__main__":

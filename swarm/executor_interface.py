@@ -16,3 +16,12 @@ class ExecutorInterface(object):
 
     def respond_to_message(self, message, message_payload):
         return self.swarm_bot.respond_to_message(message, message_payload)
+
+    def get_execution_group_ledger(self):
+        return self.swarm_bot.get_execution_group_ledger()
+
+    def add_new_execution_group_leader(self, task_bundle_id, owner_id):
+        return self.swarm_bot.add_new_execution_group_leader(task_bundle_id, owner_id)
+
+    def notify_task_completion(self, bundle_id):
+        return self.swarm_bot.notify_task_completion(bundle_id)

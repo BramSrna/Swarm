@@ -301,7 +301,7 @@ class NetworkNode(MessageChannelUser):
             "RESPONSE": None
         }
         with self.response_locks[message_id]["LOCK"]:
-            check = self.response_locks[message_id]["LOCK"].wait(10)
+            check = self.response_locks[message_id]["LOCK"].wait()
             if not check:
                 raise Exception("ERROR: Did not receive message response within time limit. Message ID: {}".format(message_id))
         return self.response_locks[message_id]["RESPONSE"]
@@ -495,13 +495,12 @@ class NetworkNode(MessageChannelUser):
                 self.sent_messages[msg_id]["NUM_TIMES_SENT"] += 1
 
                 for node_id in targets:
-                    self.logger.debug("Sent message. Sender node ID: {}, target node ID: {}, message ID {}, message type: {}, \
-                        sender message list {}\n\n".format(
+                    self.logger.debug("Sent message. Sender node ID: {}, target node ID: {}, message ID {}, message type: {}, message payload: {}".format(
                             self.get_id(),
                             target_node_id,
                             msg_id,
                             message.get_message_type(),
-                            self.sent_messages
+                            message.get_message_payload()
                         )
                     )
                     self.msg_channels[node_id].send_message(message)
@@ -541,8 +540,7 @@ class NetworkNode(MessageChannelUser):
                 message_payload = message.get_message_payload()
                 should_propagate = message.get_propagation_flag()
 
-                self.logger.debug("Received message. receiver node ID: {}, target node ID: {}, message ID {}, \
-                    message type {}, payload: {}\n\n".format(
+                self.logger.debug("Received message. receiver node ID: {}, target node ID: {}, message ID {}, message type {}, payload: {}".format(
                         self.get_id(),
                         target_id,
                         msg_id,
@@ -612,7 +610,7 @@ class NetworkNode(MessageChannelUser):
         @return [int] The message ID used for the message
         """
         if target_node_id not in self.msg_channels:
-            raise Exception("ERROR: Tried to create message for unknown node ID: " + str(target_node_id))
+            raise Exception("ERROR: Node {} tried to create message for unknown node ID: {}".format(self.get_id(), target_node_id))
 
         new_msg = self.message_wrapper_type(
             message_id,
@@ -639,8 +637,6 @@ class NetworkNode(MessageChannelUser):
 
         @return None
         """
-        self.logger.debug("Notify process state for node {}. State: {}".format(self.get_id(), process_running))
-
         curr_state = self.is_idle()
 
         if process_running:
