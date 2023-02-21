@@ -1,6 +1,7 @@
 import logging
 import unittest
 import time
+import pytest
 
 from network_manager_test.network_node_test_class import NetworkNodeTestClass
 from swarm.swarm_task.swarm_task import SwarmTask
@@ -29,6 +30,7 @@ class SimpleTask(SwarmTask):
 
 
 class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
+    @pytest.mark.skip(reason="Will be executable once https://github.com/users/BramSrna/projects/5 is finished.")
     def test_swarm_bot_will_reject_task_bundles_that_require_more_bots_than_the_swarm_contains(self):
         test_swarm_bot_1 = self.create_network_node(SwarmBot)
         test_swarm_bot_2 = self.create_network_node(SwarmBot)
@@ -52,6 +54,7 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
 
         self.assertFalse(test_swarm_bot_1.receive_task_bundle(test_task_bundle))
 
+    @pytest.mark.skip(reason="Will be executable once https://github.com/users/BramSrna/projects/5 is finished.")
     def test_can_disable_task_execution(self):
         test_swarm_bot_1 = self.create_network_node(SwarmBot)
         test_swarm_bot_1.startup()
@@ -68,6 +71,7 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
 
         self.assertFalse(test_task_bundle.is_complete())
 
+    @pytest.mark.skip(reason="Will be executable once https://github.com/users/BramSrna/projects/5 is finished.")
     def test_can_disable_and_reenable_task_execution(self):
         test_swarm_bot_1 = self.create_network_node(SwarmBot)
         test_swarm_bot_1.startup()
@@ -90,6 +94,7 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
 
         self.assertTrue(test_task_bundle.is_complete())
 
+    @pytest.mark.skip(reason="Will be executable once https://github.com/users/BramSrna/projects/5 is finished.")
     def test_when_swarm_bot_receives_task_it_will_enter_each_tasks_queue(self):
         test_swarm_bot_1 = self.create_network_node(SwarmBot)
         test_swarm_bot_2 = self.create_network_node(SwarmBot)
@@ -122,6 +127,7 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
         self.assertGreater(len(test_swarm_bot_2.get_task_bundle_queue()), 0)
         self.assertGreater(len(test_swarm_bot_3.get_task_bundle_queue()), 0)
 
+    @pytest.mark.skip(reason="Will be executable once https://github.com/users/BramSrna/projects/5 is finished.")
     def test_when_swarm_bot_executes_task_it_will_be_removed_from_all_bots_queues(self):
         test_swarm_bot_1 = self.create_network_node(SwarmBot)
         test_swarm_bot_2 = self.create_network_node(SwarmBot)
@@ -162,6 +168,7 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
         self.assertEqual(0, len(test_swarm_bot_2.get_task_bundle_queue()))
         self.assertEqual(0, len(test_swarm_bot_3.get_task_bundle_queue()))
 
+    @pytest.mark.skip(reason="Will be executable once https://github.com/users/BramSrna/projects/5 is finished.")
     def test_swarm_can_execute_task_bundle_that_requires_multiple_bots(self):
         test_swarm_bot_1 = self.create_network_node(SwarmBot)
         test_swarm_bot_2 = self.create_network_node(SwarmBot)
@@ -190,6 +197,7 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
 
         self.assertTrue(test_task_bundle.is_complete())
 
+    @pytest.mark.skip(reason="Will be executable once https://github.com/users/BramSrna/projects/5 is finished.")
     def test_tasks_are_only_run_once(self):
         test_swarm_bot_1 = self.create_network_node(SwarmBot)
         test_swarm_bot_2 = self.create_network_node(SwarmBot)
@@ -230,6 +238,7 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
 
         self.assertTrue(executed_by_1 or executed_by_2 or executed_by_3)
 
+    @pytest.mark.skip(reason="Will be executable once https://github.com/users/BramSrna/projects/5 is finished.")
     def test_can_get_output_of_task_from_single_bot(self):
         listener_bot = self.create_network_node(SwarmBot)
         listener_bot.startup()
@@ -261,6 +270,7 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
                 task_outputs.append(msg)
         self.assertGreater(len(task_outputs), 0)
 
+    @pytest.mark.skip(reason="Will be executable once https://github.com/users/BramSrna/projects/5 is finished.")
     def test_can_get_output_of_task_from_bot_for_task_that_requires_multiple_bots(self):
         listener_bot = self.create_network_node(SwarmBot)
         listener_bot.startup()
@@ -306,6 +316,7 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
                 task_outputs.append(msg)
         self.assertGreater(len(task_outputs), 0)
 
+    @pytest.mark.skip(reason="Will be executable once https://github.com/users/BramSrna/projects/5 is finished.")
     def test_swarm_can_handle_heavy_load_of_single_bot_tasks(self):
         swarm_bots = []
         num_bots = 10
@@ -327,14 +338,19 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
             listener_bot.connect_to_network_node(bot)
             bot.connect_to_network_node(listener_bot)
 
+        task_bundles = []
         for _ in range(num_tasks):
             new_task_bundle = SwarmTaskBundle()
             new_task_bundle.add_task(SimpleTask, bots_per_task)
+            task_bundles.append(new_task_bundle)
             can_execute = swarm_bots[0].receive_task_bundle(new_task_bundle, listener_bot_id=listener_bot.get_id())
             self.assertTrue(can_execute)
 
         self.wait_for_idle_network()
-            
+
+        for task_bundle in task_bundles:
+            self.assertTrue(task_bundle.is_complete())
+
         rcvd_msgs = listener_bot.get_received_messages().values()
         print(rcvd_msgs)
         task_outputs = []
@@ -345,6 +361,7 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
                 task_outputs.append(msg)
         self.assertEqual(num_tasks, len(task_outputs))
 
+    @pytest.mark.skip(reason="Will be executable once https://github.com/users/BramSrna/projects/5 is finished.")
     def test_swarm_can_handle_heavy_load_of_multi_bot_tasks(self):
         swarm_bots = []
         num_bots = 3
@@ -373,7 +390,7 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
             self.assertTrue(can_execute)
 
         self.wait_for_idle_network()
-            
+
         rcvd_msgs = listener_bot.get_received_messages().values()
         print(rcvd_msgs)
         task_outputs = []

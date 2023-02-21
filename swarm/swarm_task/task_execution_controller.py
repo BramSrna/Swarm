@@ -2,14 +2,26 @@ from enum import Enum
 
 from swarm.message_types import MessageTypes
 
+
 class TaskStates(Enum):
     SETUP = 1
     EXECUTION = 2
     TASK_OUTPUT = 3
     TEARDOWN = 4
 
+
 class TaskExecutionController(object):
-    def __init__(self, bundle_id, index_in_bundle, task_type, listener_id, task, task_id, req_num_bots, executor_interface, max_task_executions):
+    def __init__(
+            self,
+            bundle_id,
+            index_in_bundle,
+            task_type,
+            listener_id,
+            task,
+            task_id,
+            req_num_bots,
+            executor_interface,
+            max_task_executions):
         self.bundle_id = bundle_id
         self.index_in_bundle = index_in_bundle
         self.task_type = task_type
@@ -42,15 +54,11 @@ class TaskExecutionController(object):
                 self.join_execution_group()
 
     def join_execution_group(self):
-        response = self.executor_interface.send_directed_message(
+        self.executor_interface.send_directed_message(
             self.executor_interface.get_execution_group_ledger()[self.bundle_id],
             MessageTypes.REQUEST_JOIN_EXECUTION_GROUP,
-            {"TASK_BUNDLE_ID": self.bundle_id, "TASK_TYPE": self.task_type},
-            True
+            {"TASK_BUNDLE_ID": self.bundle_id, "TASK_TYPE": self.task_type}
         )
-        accepted = response.get_message_payload()["ACCEPTANCE_STATUS"]
-        if not accepted:
-            raise Exception("ERROR: Not able to join execution group.")
         self.listener_id = self.executor_interface.get_execution_group_ledger()[self.bundle_id]
 
     def received_all_required_task_outputs(self):
@@ -73,8 +81,7 @@ class TaskExecutionController(object):
                     self.executor_interface.send_directed_message(
                         bot_id,
                         MessageTypes.START_TASK_EXECUTION,
-                        {"EXECUTION_GROUP_INFO": self.execution_group, "TASK_BUNDLE_ID": self.bundle_id},
-                        False
+                        {"EXECUTION_GROUP_INFO": self.execution_group, "TASK_BUNDLE_ID": self.bundle_id}
                     )
 
         self.task.setup(self.executor_interface, self.execution_group)
@@ -86,7 +93,9 @@ class TaskExecutionController(object):
 
         self.execution_group[self.executor_interface.get_id()]["OUTPUT"] = self.task.get_task_output()
 
-        if ((self.executor_interface.get_execution_group_ledger()[self.bundle_id] == self.executor_interface.get_id()) and self.received_all_required_task_outputs()) or (self.executor_interface.get_execution_group_ledger()[self.bundle_id] != self.executor_interface.get_id()):
+        exec_group_leader_id = self.executor_interface.get_execution_group_ledger()[self.bundle_id]
+        am_exec_group_leader = exec_group_leader_id == self.executor_interface.get_id()
+        if (am_exec_group_leader and self.received_all_required_task_outputs()) or (not am_exec_group_leader):
             self.transition_state(TaskStates.TASK_OUTPUT)
 
     def send_task_output(self):
@@ -103,8 +112,12 @@ class TaskExecutionController(object):
             self.executor_interface.send_directed_message(
                 self.listener_id,
                 MessageTypes.TASK_OUTPUT,
-                {"TASK_ID": self.task_id, "TASK_OUTPUT": final_output, "TASK_TYPE": task_type, "TASK_BUNDLE_ID": self.bundle_id},
-                False
+                {
+                    "TASK_ID": self.task_id,
+                    "TASK_OUTPUT": final_output,
+                    "TASK_TYPE": task_type,
+                    "TASK_BUNDLE_ID": self.bundle_id
+                }
             )
 
         self.transition_state(TaskStates.TEARDOWN)
@@ -113,8 +126,14 @@ class TaskExecutionController(object):
         if (self.req_num_bots > 1) and (self.index_in_bundle == 0):
             for bot_id in list(self.execution_group.keys()):
                 if bot_id != self.executor_interface.get_id():
-                    self.executor_interface.send_directed_message(bot_id, MessageTypes.EXECUTION_GROUP_TEARDOWN, {"TASK_BUNDLE_ID": self.bundle_id}, False)
-            self.executor_interface.send_propagation_message(MessageTypes.EXECUTION_GROUP_DELETION, {"TASK_BUNDLE_ID": self.bundle_id})
+                    self.executor_interface.send_directed_message(
+                        bot_id, MessageTypes.EXECUTION_GROUP_TEARDOWN,
+                        {"TASK_BUNDLE_ID": self.bundle_id}
+                    )
+            self.executor_interface.send_propagation_message(
+                MessageTypes.EXECUTION_GROUP_DELETION,
+                {"TASK_BUNDLE_ID": self.bundle_id}
+            )
         self.executor_interface.notify_task_completion(self.bundle_id)
 
     def handle_execution_group_creation_message(self, message):
@@ -125,7 +144,6 @@ class TaskExecutionController(object):
 
     def handle_request_join_execution_group_message(self, message):
         msg_payload = message.get_message_payload()
-        self.executor_interface.respond_to_message(message, {"ACCEPTANCE_STATUS": True})
         self.execution_group[message.get_sender_id()] = {
             "TASK_TYPE": msg_payload["TASK_TYPE"],
             "OUTPUT": None

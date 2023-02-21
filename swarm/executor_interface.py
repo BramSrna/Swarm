@@ -11,11 +11,8 @@ class ExecutorInterface(object):
     def send_propagation_message(self, message_type, message_payload):
         return self.swarm_bot.send_propagation_message(message_type, message_payload)
 
-    def send_directed_message(self, target_node_id, message_type, message_payload, sync_message):
-        return self.swarm_bot.send_directed_message(target_node_id, message_type, message_payload, sync_message)
-
-    def respond_to_message(self, message, message_payload):
-        return self.swarm_bot.respond_to_message(message, message_payload)
+    def send_directed_message(self, target_node_id, message_type, message_payload):
+        return self.swarm_bot.send_directed_message(target_node_id, message_type, message_payload)
 
     def get_execution_group_ledger(self):
         return self.swarm_bot.get_execution_group_ledger()

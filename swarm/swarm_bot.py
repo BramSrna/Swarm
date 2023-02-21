@@ -52,6 +52,7 @@ class SwarmBot(NetworkNode):
         self.assign_msg_handler(str(MessageTypes.DELETE_FROM_SWARM_MEMORY), self.handle_delete_from_swarm_memory_message)
         self.assign_msg_handler(str(MessageTypes.TASK_OUTPUT), self.handle_task_output_message)
         self.assign_msg_handler(str(MessageTypes.EXECUTION_GROUP_DELETION), self.handle_execution_group_deletion_message)
+        self.assign_msg_handler(str(MessageTypes.RESPOND_TO_READ), self.handle_respond_to_read_message)
 
     def startup(self):
         NetworkNode.startup(self)
@@ -190,11 +191,21 @@ class SwarmBot(NetworkNode):
         if task_bundle_id in self.execution_group_ledger:
             self.execution_group_ledger.pop(task_bundle_id)
 
+    def handle_respond_to_read_message(self, message):
+        msg_payload = message.get_message_payload()
+        object_key = msg_payload["OBJECT_KEY"]
+        object_value = msg_payload["OBJECT_VALUE"]
+        data_type = msg_payload["DATA_TYPE"]
+        self.write_to_swarm_memory(object_key, object_value, data_type)
+        if data_type == SwarmTask.__name__:
+            self.task_queue_has_values.set()
+
     def task_executor_loop(self):
         while (not self.run_node.is_set()) and (not self.run_task_executor.is_set()):
             self.task_queue_has_values.wait()
 
-            if (not self.run_node.is_set()) and (not self.run_task_executor.is_set()) and (len(self.task_executors.keys()) < self.max_num_task_executors):
+            if (not self.run_node.is_set()) and (not self.run_task_executor.is_set()) and \
+                    (len(self.task_executors.keys()) < self.max_num_task_executors):
                 self._notify_process_state(True)
 
                 next_task_info = self.get_next_task_to_execute()
