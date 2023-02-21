@@ -18,16 +18,13 @@ class SwarmMemoryInterface(object):
         bot_with_obj = self.local_swarm_memory.get_data_holder_id(key_to_read)
         value = None
         if bot_with_obj == self.executor_interface.get_id():
-            value = self.local_swarm_memory.read(key_to_read)
+            value = self.local_swarm_memory.read(key_to_read)["VALUE"]
         elif bot_with_obj is not None:
-            response = self.executor_interface.send_directed_message(
+            self.executor_interface.send_directed_message(
                 bot_with_obj,
                 MessageTypes.REQUEST_SWARM_MEMORY_READ,
-                {"KEY_TO_READ": key_to_read},
-                True
+                {"KEY_TO_READ": key_to_read}
             )
-
-            value = response.get_message_payload()["OBJECT_VALUE"]
         else:
             # else in this case means that the there is no key with the given value in the swarm memory
             pass
@@ -37,7 +34,7 @@ class SwarmMemoryInterface(object):
         bot_with_obj = self.local_swarm_memory.get_data_holder_id(key_to_pop)
         value = None
         if bot_with_obj == self.executor_interface.get_id():
-            value = self.local_swarm_memory.read(key_to_pop)
+            value = self.local_swarm_memory.read(key_to_pop)["VALUE"]
             self.local_swarm_memory.delete(key_to_pop)
             self.executor_interface.send_propagation_message(
                 MessageTypes.DELETE_FROM_SWARM_MEMORY,
@@ -45,13 +42,11 @@ class SwarmMemoryInterface(object):
             )
         elif bot_with_obj is not None:
             self.local_swarm_memory.delete(key_to_pop)
-            response = self.executor_interface.send_directed_message(
+            self.executor_interface.send_directed_message(
                 bot_with_obj,
                 MessageTypes.POP_FROM_SWARM_MEMORY,
-                {"KEY_TO_POP": key_to_pop},
-                True
+                {"KEY_TO_POP": key_to_pop}
             )
-            value = response.get_message_payload()["OBJECT_VALUE"]
             self.executor_interface.send_propagation_message(
                 MessageTypes.DELETE_FROM_SWARM_MEMORY,
                 {"KEY_TO_DELETE": key_to_pop}
@@ -76,19 +71,29 @@ class SwarmMemoryInterface(object):
         msg_payload = message.get_message_payload()
         object_key = msg_payload["KEY_TO_READ"]
 
-        object_value = self.local_swarm_memory.read(object_key)
+        if self.local_swarm_memory.has_data_key(object_key):
+            object_info = self.local_swarm_memory.read(object_key)
 
-        self.executor_interface.respond_to_message(message, {"OBJECT_VALUE": object_value})
+            self.executor_interface.send_directed_message(
+                message.get_sender_id(),
+                MessageTypes.RESPOND_TO_READ,
+                {"OBJECT_KEY": object_key, "OBJECT_VALUE": object_info["VALUE"], "DATA_TYPE": object_info["DATA_TYPE"]}
+            )
 
     def handle_pop_from_swarm_memory_message(self, message):
         msg_payload = message.get_message_payload()
         key_to_pop = msg_payload["KEY_TO_POP"]
 
-        object_value = self.local_swarm_memory.read(key_to_pop)
+        if self.local_swarm_memory.has_data_key(key_to_pop):
+            object_info = self.local_swarm_memory.read(key_to_pop)
 
-        self.executor_interface.respond_to_message(message, {"OBJECT_VALUE": object_value})
+            self.executor_interface.send_directed_message(
+                message.get_sender_id(),
+                MessageTypes.RESPOND_TO_READ,
+                {"OBJECT_KEY": key_to_pop, "OBJECT_VALUE": object_info["VALUE"], "DATA_TYPE": object_info["DATA_TYPE"]}
+            )
 
-        self.local_swarm_memory.delete(key_to_pop)
+            self.local_swarm_memory.delete(key_to_pop)
 
     def handle_delete_from_swarm_memory_message(self, message):
         msg_payload = message.get_message_payload()

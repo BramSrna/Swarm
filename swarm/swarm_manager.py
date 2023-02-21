@@ -60,7 +60,6 @@ class SwarmManager(NetworkManager):
         """
         super().add_network_node(new_node)
         self.idle_bots.append(new_node.get_id())
-        new_node.add_task_execution_listener(self)
         self.check_for_available_task_executors()
 
     def notify_task_completion(self, task_id, task_output):

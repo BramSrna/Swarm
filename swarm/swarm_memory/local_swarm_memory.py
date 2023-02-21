@@ -14,7 +14,7 @@ class LocalSwarmMemory(object):
 
     def read(self, key_to_read):
         if key_to_read in self.contents:
-            return self.contents[key_to_read]["VALUE"]
+            return self.contents[key_to_read]
         return None
 
     def delete(self, key_to_delete):

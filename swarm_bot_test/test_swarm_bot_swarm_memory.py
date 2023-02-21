@@ -58,6 +58,8 @@ class TestSwarmBotSwarmMemory(NetworkNodeTestClass):
 
         self.wait_for_idle_network()
 
+        ret_val = test_swarm_bot_2.read_from_swarm_memory(test_mem_id)
+
         self.assertEqual(test_mem_val, ret_val)
 
     @pytest.mark.skip(reason="Will be executable once https://github.com/users/BramSrna/projects/5?pane=issue&itemId=19698179 \

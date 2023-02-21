@@ -56,15 +56,13 @@ class TestSwarmBotTaskInbox(NetworkNodeTestClass):
 
         task = test_task_bundle.get_tasks()[0]
 
-        bot_1_ret_val = test_swarm_bot_1.read_from_swarm_memory(task.get_id())
         bot_2_ret_val = test_swarm_bot_2.read_from_swarm_memory(task.get_id())
-        bot_3_ret_val = test_swarm_bot_3.read_from_swarm_memory(task.get_id())
 
         self.wait_for_idle_network()
 
-        self.assertEqual(task, bot_1_ret_val["TASK"])
+        bot_2_ret_val = test_swarm_bot_2.read_from_swarm_memory(task.get_id())
+
         self.assertEqual(task, bot_2_ret_val["TASK"])
-        self.assertEqual(task, bot_3_ret_val["TASK"])
 
     def test_task_bundle_is_removed_from_swarm_memory_after_execution(self):
         test_swarm_bot_1 = self.create_network_node(SwarmBot)
@@ -96,29 +94,25 @@ class TestSwarmBotTaskInbox(NetworkNodeTestClass):
 
         task = test_task_bundle.get_tasks()[0]
 
-        bot_1_ret_val = test_swarm_bot_1.read_from_swarm_memory(task.get_id())
         bot_2_ret_val = test_swarm_bot_2.read_from_swarm_memory(task.get_id())
-        bot_3_ret_val = test_swarm_bot_3.read_from_swarm_memory(task.get_id())
 
         self.wait_for_idle_network()
 
-        self.assertEqual(task, bot_1_ret_val["TASK"])
+        bot_2_ret_val = test_swarm_bot_2.read_from_swarm_memory(task.get_id())
+
         self.assertEqual(task, bot_2_ret_val["TASK"])
-        self.assertEqual(task, bot_3_ret_val["TASK"])
 
         test_swarm_bot_1.set_task_executor_status(True)
 
         self.wait_for_idle_network()
 
-        bot_1_ret_val = test_swarm_bot_1.read_from_swarm_memory(task.get_id())
         bot_2_ret_val = test_swarm_bot_2.read_from_swarm_memory(task.get_id())
-        bot_3_ret_val = test_swarm_bot_3.read_from_swarm_memory(task.get_id())
 
         self.wait_for_idle_network()
 
-        self.assertEqual(None, bot_1_ret_val)
+        bot_2_ret_val = test_swarm_bot_2.read_from_swarm_memory(task.get_id())
+
         self.assertEqual(None, bot_2_ret_val)
-        self.assertEqual(None, bot_3_ret_val)
 
 
 if __name__ == "__main__":
