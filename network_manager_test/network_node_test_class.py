@@ -1,4 +1,5 @@
 import unittest
+import threading
 
 from network_manager.network_node.network_node import NetworkNode
 from network_manager.network_node.network_node_idle_listener_interface import NetworkNodeIdleListenerInterface
@@ -38,7 +39,8 @@ class NetworkNodeTestClass(unittest.TestCase, NetworkNodeIdleListenerInterface):
         @return None
         """
         for node in self.test_network_nodes:
-            node.teardown()
+            thread = threading.Thread(target=node.teardown)
+            thread.start()
 
     def create_network_node(self, node_class, additional_config_dict: dict = {}) -> NetworkNode:
         """

@@ -43,11 +43,9 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_2)
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_3)
 
-        test_swarm_bot_2.connect_to_network_node(test_swarm_bot_1)
         test_swarm_bot_2.connect_to_network_node(test_swarm_bot_3)
 
-        test_swarm_bot_3.connect_to_network_node(test_swarm_bot_1)
-        test_swarm_bot_3.connect_to_network_node(test_swarm_bot_2)
+        self.wait_for_idle_network()
 
         test_task_bundle = SwarmTaskBundle()
         test_task_bundle.add_task(SimpleTask, 5)
@@ -106,10 +104,9 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
 
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_2)
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_3)
-        test_swarm_bot_2.connect_to_network_node(test_swarm_bot_1)
         test_swarm_bot_2.connect_to_network_node(test_swarm_bot_3)
-        test_swarm_bot_3.connect_to_network_node(test_swarm_bot_1)
-        test_swarm_bot_3.connect_to_network_node(test_swarm_bot_2)
+
+        self.wait_for_idle_network()
 
         test_swarm_bot_1.set_task_executor_status(False)
         test_swarm_bot_2.set_task_executor_status(False)
@@ -139,10 +136,9 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
 
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_2)
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_3)
-        test_swarm_bot_2.connect_to_network_node(test_swarm_bot_1)
         test_swarm_bot_2.connect_to_network_node(test_swarm_bot_3)
-        test_swarm_bot_3.connect_to_network_node(test_swarm_bot_1)
-        test_swarm_bot_3.connect_to_network_node(test_swarm_bot_2)
+
+        self.wait_for_idle_network()
 
         test_swarm_bot_1.set_task_executor_status(False)
         test_swarm_bot_2.set_task_executor_status(False)
@@ -181,11 +177,9 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_2)
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_3)
 
-        test_swarm_bot_2.connect_to_network_node(test_swarm_bot_1)
         test_swarm_bot_2.connect_to_network_node(test_swarm_bot_3)
 
-        test_swarm_bot_3.connect_to_network_node(test_swarm_bot_1)
-        test_swarm_bot_3.connect_to_network_node(test_swarm_bot_2)
+        self.wait_for_idle_network()
 
         test_task_bundle = SwarmTaskBundle()
         test_task_bundle.add_task(SimpleTask, 3)
@@ -210,11 +204,9 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_2)
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_3)
 
-        test_swarm_bot_2.connect_to_network_node(test_swarm_bot_1)
         test_swarm_bot_2.connect_to_network_node(test_swarm_bot_3)
 
-        test_swarm_bot_3.connect_to_network_node(test_swarm_bot_1)
-        test_swarm_bot_3.connect_to_network_node(test_swarm_bot_2)
+        self.wait_for_idle_network()
 
         test_task_bundle = SwarmTaskBundle()
         test_task_bundle.add_task(SimpleTask, 1)
@@ -249,7 +241,8 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
         test_swarm_bot_1.startup()
 
         test_swarm_bot_1.connect_to_network_node(listener_bot)
-        listener_bot.connect_to_network_node(test_swarm_bot_1)
+
+        self.wait_for_idle_network()
 
         test_task_bundle = SwarmTaskBundle()
         test_task_bundle.add_task(SimpleTask, 1)
@@ -288,14 +281,11 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_2)
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_3)
 
-        test_swarm_bot_2.connect_to_network_node(test_swarm_bot_1)
         test_swarm_bot_2.connect_to_network_node(test_swarm_bot_3)
 
-        test_swarm_bot_3.connect_to_network_node(test_swarm_bot_1)
-        test_swarm_bot_3.connect_to_network_node(test_swarm_bot_2)
-
         test_swarm_bot_1.connect_to_network_node(listener_bot)
-        listener_bot.connect_to_network_node(test_swarm_bot_1)
+
+        self.wait_for_idle_network()
 
         test_task_bundle = SwarmTaskBundle()
         test_task_bundle.add_task(SimpleTask, 3)
@@ -328,7 +318,6 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
             new_bot.startup()
             for bot in swarm_bots:
                 new_bot.connect_to_network_node(bot)
-                bot.connect_to_network_node(new_bot)
             swarm_bots.append(new_bot)
 
         listener_bot = self.create_network_node(SwarmBot)
@@ -336,7 +325,8 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
         listener_bot.set_task_executor_status(False)
         for bot in swarm_bots:
             listener_bot.connect_to_network_node(bot)
-            bot.connect_to_network_node(listener_bot)
+
+        self.wait_for_idle_network()
 
         task_bundles = []
         for _ in range(num_tasks):
@@ -373,7 +363,6 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
             new_bot.startup()
             for bot in swarm_bots:
                 new_bot.connect_to_network_node(bot)
-                bot.connect_to_network_node(new_bot)
             swarm_bots.append(new_bot)
 
         listener_bot = self.create_network_node(SwarmBot)
@@ -381,7 +370,8 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
         listener_bot.set_task_executor_status(False)
         for bot in swarm_bots:
             listener_bot.connect_to_network_node(bot)
-            bot.connect_to_network_node(listener_bot)
+
+        self.wait_for_idle_network()
 
         for _ in range(num_tasks):
             new_task_bundle = SwarmTaskBundle()

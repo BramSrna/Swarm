@@ -73,18 +73,15 @@ class NetworkManager(NetworkNodeIdleListenerInterface):
         if self.network_connectivity_level == NetworkConnectivityLevel.FULLY_CONNECTED:
             for node_id, node in self.network_nodes.items():
                 node.connect_to_network_node(new_node)
-                new_node.connect_to_network_node(node)
         elif self.network_connectivity_level == NetworkConnectivityLevel.PARTIALLY_CONNECTED:
             if len(self.network_nodes.keys()) > 0:
                 connected_node_id, connected_node = choice(list(self.network_nodes.items()))
                 connected_node.connect_to_network_node(new_node)
-                new_node.connect_to_network_node(connected_node)
         elif self.network_connectivity_level == NetworkConnectivityLevel.CENTRALIZED:
             if len(self.network_nodes.keys()) == 0:
                 self.central_network_node = new_node
             else:
                 self.central_network_node.connect_to_network_node(new_node)
-                new_node.connect_to_network_node(self.central_network_node)
         else:
             raise Exception("ERROR: unknown connectivity level: " + str(self.network_connectivity_level))
 
