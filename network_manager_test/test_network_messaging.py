@@ -14,7 +14,8 @@ class TestNetworkMessaging(NetworkNodeTestClass):
         test_network_node_2.startup()
 
         test_network_node_1.connect_to_network_node(test_network_node_2)
-        test_network_node_2.connect_to_network_node(test_network_node_1)
+
+        self.wait_for_idle_network()
 
         test_network_node_1.send_directed_message(test_network_node_2.get_id(), "TEST", {})
 
@@ -32,7 +33,8 @@ class TestNetworkMessaging(NetworkNodeTestClass):
         test_network_node_2.startup()
 
         test_network_node_1.connect_to_network_node(test_network_node_2)
-        test_network_node_2.connect_to_network_node(test_network_node_1)
+
+        self.wait_for_idle_network()
 
         test_network_node_1.teardown()
         test_network_node_1.startup()
@@ -52,7 +54,8 @@ class TestNetworkMessaging(NetworkNodeTestClass):
         test_network_node_2.startup()
 
         test_network_node_1.connect_to_network_node(test_network_node_2)
-        test_network_node_2.connect_to_network_node(test_network_node_1)
+
+        self.wait_for_idle_network()
 
         test_network_node_1.send_directed_message(test_network_node_2.get_id(), "TEST", {})
 

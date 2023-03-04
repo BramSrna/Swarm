@@ -111,3 +111,6 @@ class MessageWrapper(ABC):
         @return [bool] The propagation value
         """
         return self.propagation_flag
+
+    def set_sender_id(self, new_sender_id):
+        self.sender_id = new_sender_id

@@ -42,6 +42,8 @@ class TestNetworkManager(NetworkNodeTestClass):
 
         test_network_manager.add_network_node(new_network_node)
 
+        self.wait_for_idle_network()
+
         self.assertTrue(new_network_node.is_connected_to(test_network_node_1.get_id()))
         self.assertTrue(new_network_node.is_connected_to(test_network_node_2.get_id()))
         self.assertTrue(new_network_node.is_connected_to(test_network_node_3.get_id()))
@@ -70,6 +72,8 @@ class TestNetworkManager(NetworkNodeTestClass):
         new_network_node.startup()
 
         test_network_manager.add_network_node(new_network_node)
+
+        self.wait_for_idle_network()
 
         connections = new_network_node.get_connections()
 
@@ -100,6 +104,8 @@ class TestNetworkManager(NetworkNodeTestClass):
 
         test_network_manager.add_network_node(new_network_node)
 
+        self.wait_for_idle_network()
+
         connections = new_network_node.get_connections()
 
         self.assertEqual(1, len(connections))
@@ -128,6 +134,8 @@ class TestNetworkManager(NetworkNodeTestClass):
 
         test_network_manager.add_network_node(new_network_node)
 
+        self.wait_for_idle_network()
+
         self.assertTrue(new_network_node.is_connected_to(test_network_node_1.get_id()))
         self.assertTrue(new_network_node.is_connected_to(test_network_node_2.get_id()))
         self.assertTrue(new_network_node.is_connected_to(test_network_node_3.get_id()))
@@ -137,6 +145,8 @@ class TestNetworkManager(NetworkNodeTestClass):
         self.assertTrue(test_network_node_3.is_connected_to(new_network_node.get_id()))
 
         test_network_manager.remove_network_node(new_network_node.get_id())
+
+        self.wait_for_idle_network()
 
         self.assertFalse(new_network_node.is_connected_to(test_network_node_1.get_id()))
         self.assertFalse(new_network_node.is_connected_to(test_network_node_2.get_id()))
@@ -166,6 +176,8 @@ class TestNetworkManager(NetworkNodeTestClass):
         new_network_node.startup()
 
         test_network_manager.add_network_node(new_network_node)
+
+        self.wait_for_idle_network()
 
         with self.assertRaises(Exception) as raised_error:
             test_network_manager.remove_network_node(test_network_manager.get_central_network_node().get_id())

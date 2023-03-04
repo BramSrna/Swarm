@@ -37,10 +37,9 @@ class TestSwarmBotTaskInbox(NetworkNodeTestClass):
 
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_2)
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_3)
-        test_swarm_bot_2.connect_to_network_node(test_swarm_bot_1)
         test_swarm_bot_2.connect_to_network_node(test_swarm_bot_3)
-        test_swarm_bot_3.connect_to_network_node(test_swarm_bot_1)
-        test_swarm_bot_3.connect_to_network_node(test_swarm_bot_2)
+
+        self.wait_for_idle_network()
 
         test_swarm_bot_1.set_task_executor_status(False)
         test_swarm_bot_2.set_task_executor_status(False)
@@ -75,10 +74,9 @@ class TestSwarmBotTaskInbox(NetworkNodeTestClass):
 
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_2)
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_3)
-        test_swarm_bot_2.connect_to_network_node(test_swarm_bot_1)
         test_swarm_bot_2.connect_to_network_node(test_swarm_bot_3)
-        test_swarm_bot_3.connect_to_network_node(test_swarm_bot_1)
-        test_swarm_bot_3.connect_to_network_node(test_swarm_bot_2)
+
+        self.wait_for_idle_network()
 
         test_swarm_bot_1.set_task_executor_status(False)
         test_swarm_bot_2.set_task_executor_status(False)
