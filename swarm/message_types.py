@@ -18,3 +18,4 @@ class MessageTypes(Enum):
     SYNC_INTERMEDIARIES = 14
     BOT_TEARDOWN = 15
     REQUEST_PATH_TO_BOT = 16
+    MSG_RESPONSE = 17

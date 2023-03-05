@@ -49,7 +49,6 @@ class NetworkNode(MessageChannelUser):
 
         self.msg_inbox = []
         self.msg_outbox = []
-        self.response_locks = {}
 
         self.run_node = threading.Event()
         self.msg_inbox_has_values = threading.Event()
@@ -69,7 +68,6 @@ class NetworkNode(MessageChannelUser):
         self.num_processes = 0
 
         self.msg_handler_dict = {}
-        self.assign_msg_handler(str(NetworkNodeMessageTypes.MSG_RESPONSE), self.handle_msg_response_message)
         self.assign_msg_handler(str(NetworkNodeMessageTypes.REQUEST_CONNECTION), self.handle_request_connection_message)
         self.assign_msg_handler(
             str(NetworkNodeMessageTypes.ACCEPT_CONNECTION_REQUEST),
@@ -459,17 +457,6 @@ class NetworkNode(MessageChannelUser):
                     return True
 
         raise Exception("ERROR: Node was not idle before timeout was hit.")
-
-    def handle_msg_response_message(self, message):
-        message_payload = message.get_message_payload()
-        original_message_id = message_payload["ORIGINAL_MESSAGE_ID"]
-        if original_message_id not in self.response_locks:
-            raise Exception("ERROR: Received message response for message that was never sent: {}".format(
-                message.get_message_payload()
-            ))
-        self.response_locks[original_message_id]["RESPONSE"] = message
-        with self.response_locks[original_message_id]["LOCK"]:
-            self.response_locks[original_message_id]["LOCK"].notify_all()
 
     def handle_request_connection_message(self, message):
         new_network_node = message.get_message_payload()["NODE"]

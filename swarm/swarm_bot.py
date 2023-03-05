@@ -19,6 +19,7 @@ class SwarmBot(NetworkNode):
             additional_config_dict=additional_config_dict
         )
 
+        self.response_locks = {}
         self.msg_intermediaries = {}
 
         self.run_task_executor = threading.Event()
@@ -61,6 +62,7 @@ class SwarmBot(NetworkNode):
         self.assign_msg_handler(str(MessageTypes.SYNC_INTERMEDIARIES), self.handle_sync_intermediaries_message)
         self.assign_msg_handler(str(MessageTypes.BOT_TEARDOWN), self.handle_bot_teardown_message)
         self.assign_msg_handler(str(MessageTypes.REQUEST_PATH_TO_BOT), self.handle_request_path_to_bot)
+        self.assign_msg_handler(str(MessageTypes.MSG_RESPONSE), self.handle_msg_response_message)
 
     def startup(self):
         NetworkNode.startup(self)
@@ -194,6 +196,28 @@ class SwarmBot(NetworkNode):
         first_intermediary_id = self.msg_intermediaries[target_bot_id]["INTERMEDIARY_ID"]
 
         return NetworkNode.send_directed_message(self, first_intermediary_id, message_type, message_payload)
+
+    def send_sync_directed_message(self, target_bot_id, message_type, message_payload):
+        message_payload["TARGET_BOT_ID"] = target_bot_id
+
+        if target_bot_id not in self.msg_intermediaries:
+            raise Exception("ERROR: {} tried to send message to bot with no known path: {}".format(
+                self.get_id(),
+                target_bot_id
+            ))
+        first_intermediary_id = self.msg_intermediaries[target_bot_id]["INTERMEDIARY_ID"]
+
+        msg_id = NetworkNode.send_directed_message(self, first_intermediary_id, message_type, message_payload)
+
+        self.response_locks[msg_id] = {
+            "LOCK": threading.Condition(),
+            "RESPONSE": None
+        }
+        with self.response_locks[msg_id]["LOCK"]:
+            check = self.response_locks[msg_id]["LOCK"].wait(timeout=10)
+            if not check:
+                raise Exception("ERROR: Did not receive message response within time limit. Message ID: {}".format(msg_id))
+        return self.response_locks[msg_id]["RESPONSE"]
 
     def save_msg_intermediary(self, target_bot_id, intermediary_id, num_jumps):
         if target_bot_id == self.get_id():
@@ -358,6 +382,17 @@ class SwarmBot(NetworkNode):
                 MessageTypes.NEW_SWARM_BOT_ID,
                 {"MSG_INTERMEDIARY": self.get_id(), "NEW_BOT_ID": bot_id, "NUM_JUMPS": 1}
             )
+
+    def handle_msg_response_message(self, message):
+        message_payload = message.get_message_payload()
+        original_message_id = message_payload["ORIGINAL_MESSAGE_ID"]
+        if original_message_id not in self.response_locks:
+            raise Exception("ERROR: Received message response for message that was never sent: {}".format(
+                message.get_message_payload()
+            ))
+        self.response_locks[original_message_id]["RESPONSE"] = message
+        with self.response_locks[original_message_id]["LOCK"]:
+            self.response_locks[original_message_id]["LOCK"].notify_all()
 
     def task_executor_loop(self):
         while (not self.run_node.is_set()) and (not self.run_task_executor.is_set()):
