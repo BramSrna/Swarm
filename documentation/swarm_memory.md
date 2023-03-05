@@ -23,7 +23,7 @@ The bot where information is stored in the swarm memory can be thoughout similar
 1. How to measure and track load on each bot?
 The load shall be a function of the memory on the machine. One implementation could be the percentage of used allocated swarm memory space. This shall be configurable using subclasses similar to propagation strategies.
 2. How to track remaining space on each bot?
-A ledger that is periodically synced shall be used. The ledger will be a map of the IDs of all bots connected to a given bot along with the current load on the bot. The sync strategy can then be set. Some potential strategies include time based or change percentage based. The ledger size will scale linearly with each newly conencted bot, but may lead to pockets in the swarm memory.
+A ledger that is periodically synced shall be used. The ledger will be a map of the IDs of all bots connected to a given bot along with the current load on the bot. The sync strategy can then be set. Some potential strategies include time based or change percentage based. The ledger size will scale linearly with each newly connected bot, but may lead to pockets in the swarm memory.
 3. How many bots should hold the information to account for redundancy?
 Machine learning shall be used to place information optimally. This will minimize response time while maximizing security.
 
