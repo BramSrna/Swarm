@@ -74,5 +74,4 @@ class NetworkNodeIdleListenerInterface(object):
                 if self.network_is_idle():
                     return True
 
-        if (time.time() >= start_time + timeout_sec):
-            raise Exception("ERROR: Network was not idle before timeout was hit. # Busy Nodes: {}".format(self.num_busy_nodes))
+        raise Exception("ERROR: Network was not idle before timeout was hit. # Busy Nodes: {}".format(self.num_busy_nodes))
