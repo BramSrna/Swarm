@@ -14,7 +14,7 @@ Write a new value to the swarm memory.
 - Each bot needs to maintain a record of all of the values in the swarm and where they are located. This would not scale well for bots with low memory.
 
 ## New proposed solution
-The bot where information is stored in the swarm memory can be thoughout similar to a computer. For example, if it's stored locally on the bot's swarm memory allocation, that would be similar to the bot's cache. If the data is stored on a directly connected bot, that would be the RAM. Finally, if it's stored on a non-directly connected bot, that would be the hard drive. 
+The bot where information is stored in the swarm memory can be thoughout similar to a computer. For example, if it's stored locally on the bot's swarm memory allocation, that would be similar to the bot's cache. If the data is stored on a directly connected bot, that would be the RAM. Finally, if it's stored on a non-directly connected bot, that would be the hard drive.
 
 1. Determine which bots will hold the new information. These shall be the bots with the current smallest load that also have enough remaining space to hold the value. This will help with load balancing and data redundancy.
 2. Push out content discovery to read time. Instead of propagating a message at write time, bots will learn of content at read time. Bots will query the swarm memory by propagating a read query message and then receive contents IDs and location IDs. This will remove the need for propagation and bots will no longer have to maintain a full list of all swarm memory contents. Instead, they will just be responsible for tracking local contents.

@@ -14,6 +14,9 @@ class ExecutorInterface(object):
     def send_directed_message(self, target_node_id, message_type, message_payload):
         return self.swarm_bot.send_directed_message(target_node_id, message_type, message_payload)
 
+    def send_sync_directed_message(self, target_bot_id, message_type, message_payload):
+        return self.swarm_bot.send_sync_directed_message(target_bot_id, message_type, message_payload)
+
     def get_execution_group_ledger(self):
         return self.swarm_bot.get_execution_group_ledger()
 
@@ -22,3 +25,6 @@ class ExecutorInterface(object):
 
     def notify_task_completion(self, bundle_id):
         return self.swarm_bot.notify_task_completion(bundle_id)
+
+    def respond_to_message(self, message, message_payload):
+        return self.swarm_bot.respond_to_message(message, message_payload)
