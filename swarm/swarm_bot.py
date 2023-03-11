@@ -63,6 +63,7 @@ class SwarmBot(NetworkNode):
         self.assign_msg_handler(str(MessageTypes.BOT_TEARDOWN), self.handle_bot_teardown_message)
         self.assign_msg_handler(str(MessageTypes.REQUEST_PATH_TO_BOT), self.handle_request_path_to_bot)
         self.assign_msg_handler(str(MessageTypes.MSG_RESPONSE), self.handle_msg_response_message)
+        self.assign_msg_handler(str(MessageTypes.UPDATE_SWARM_MEMORY_VALUE), self.handle_update_swarm_memory_value)
 
     def startup(self):
         NetworkNode.startup(self)
@@ -106,6 +107,9 @@ class SwarmBot(NetworkNode):
 
     def write_to_swarm_memory(self, key_to_write, value_to_write, data_type):
         self.swarm_memory_interface.write_to_swarm_memory(key_to_write, value_to_write, data_type)
+
+    def update_swarm_memory(self, key_to_update, new_value):
+        self.swarm_memory_interface.update_swarm_memory(key_to_update, new_value)
 
     def get_task_execution_history(self):
         return self.task_execution_history
@@ -244,6 +248,7 @@ class SwarmBot(NetworkNode):
         msg_payload = message.get_message_payload()
         data_type = msg_payload["DATA_TYPE"]
         self.swarm_memory_interface.handle_swarm_memory_object_location_message(message)
+        print(data_type)
         if data_type == SwarmTask.__name__:
             self.task_queue_has_values.set()
 
@@ -390,6 +395,12 @@ class SwarmBot(NetworkNode):
         self.response_locks[original_message_id]["RESPONSE"] = message
         with self.response_locks[original_message_id]["LOCK"]:
             self.response_locks[original_message_id]["LOCK"].notify_all()
+
+    def handle_update_swarm_memory_value(self, message):
+        message_payload = message.get_message_payload()
+        key_to_update = message_payload["KEY_TO_UPDATE"]
+        new_value = message_payload["NEW_VALUE"]
+        self.update_swarm_memory(key_to_update, new_value)
 
     def task_executor_loop(self):
         while (not self.run_node.is_set()) and (not self.run_task_executor.is_set()):
