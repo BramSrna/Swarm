@@ -18,7 +18,7 @@ class SwarmMemoryInterface(object):
         bot_with_obj = self.local_swarm_memory.get_data_holder_id(key_to_read)
         value = None
         if bot_with_obj == self.executor_interface.get_id():
-            value = self.local_swarm_memory.read(key_to_read)["VALUE"]
+            value = self.local_swarm_memory.read(key_to_read)
         elif bot_with_obj is not None:
             response = self.executor_interface.send_sync_directed_message(
                 bot_with_obj,
@@ -31,11 +31,25 @@ class SwarmMemoryInterface(object):
             pass
         return value
 
+    def update_swarm_memory(self, key_to_update, new_value):
+        bot_with_obj = self.local_swarm_memory.get_data_holder_id(key_to_update)
+        if bot_with_obj == self.executor_interface.get_id():
+            self.local_swarm_memory.update(key_to_update, new_value)
+        elif bot_with_obj is not None:
+            self.executor_interface.send_directed_message(
+                bot_with_obj,
+                MessageTypes.UPDATE_SWARM_MEMORY_VALUE,
+                {"KEY_TO_UPDATE": key_to_update, "NEW_VALUE": new_value}
+            )
+        else:
+            # else in this case means that the there is no key with the given value in the swarm memory
+            pass
+
     def pop_from_swarm_memory(self, key_to_pop):
         bot_with_obj = self.local_swarm_memory.get_data_holder_id(key_to_pop)
         value = None
         if bot_with_obj == self.executor_interface.get_id():
-            value = self.local_swarm_memory.read(key_to_pop)["VALUE"]
+            value = self.local_swarm_memory.read(key_to_pop)
             self.local_swarm_memory.delete(key_to_pop)
             self.executor_interface.send_propagation_message(
                 MessageTypes.DELETE_FROM_SWARM_MEMORY,
@@ -77,9 +91,7 @@ class SwarmMemoryInterface(object):
             self.executor_interface.respond_to_message(
                 message,
                 {
-                    "OBJECT_KEY": object_key,
-                    "OBJECT_VALUE": object_info["VALUE"],
-                    "DATA_TYPE": object_info["DATA_TYPE"]
+                    "OBJECT_VALUE": object_info
                 }
             )
 
@@ -93,7 +105,7 @@ class SwarmMemoryInterface(object):
             self.executor_interface.send_directed_message(
                 message.get_sender_id(),
                 MessageTypes.RESPOND_TO_READ,
-                {"OBJECT_KEY": key_to_pop, "OBJECT_VALUE": object_info["VALUE"], "DATA_TYPE": object_info["DATA_TYPE"]}
+                {"OBJECT_VALUE": object_info["VALUE"]}
             )
 
             self.local_swarm_memory.delete(key_to_pop)

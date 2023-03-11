@@ -6,16 +6,17 @@ class LocalSwarmMemory(object):
         self.data_to_holder_id_map = {}
 
     def write(self, new_key_to_write, new_value_to_write, data_type):
-        self.contents[new_key_to_write] = {
-            "DATA_TYPE": data_type,
-            "VALUE": new_value_to_write
-        }
+        self.contents[new_key_to_write] = new_value_to_write
         self.update_data_holder(new_key_to_write, self.owner_bot_id, data_type)
 
     def read(self, key_to_read):
         if key_to_read in self.contents:
             return self.contents[key_to_read]
         return None
+
+    def update(self, key_to_update, new_value):
+        if self.has_data_key(key_to_update):
+            self.contents[key_to_update] = new_value
 
     def delete(self, key_to_delete):
         if key_to_delete in self.contents:
@@ -39,9 +40,6 @@ class LocalSwarmMemory(object):
 
     def get_ids_of_contents_of_type(self, type_to_get):
         ids = []
-        for data_key, data_info in self.contents.items():
-            if data_info["DATA_TYPE"] == type_to_get:
-                ids.append(data_key)
         for data_key, data_info in self.data_to_holder_id_map.items():
             if data_info["DATA_TYPE"] == type_to_get:
                 ids.append(data_key)

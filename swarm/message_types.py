@@ -19,3 +19,4 @@ class MessageTypes(Enum):
     BOT_TEARDOWN = 15
     REQUEST_PATH_TO_BOT = 16
     MSG_RESPONSE = 17
+    UPDATE_SWARM_MEMORY_VALUE = 18
