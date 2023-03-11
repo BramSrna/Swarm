@@ -6,7 +6,6 @@ class LocalSwarmMemory(object):
         self.data_to_holder_id_map = {}
 
     def write(self, new_key_to_write, new_value_to_write, data_type):
-        print(data_type)
         self.contents[new_key_to_write] = new_value_to_write
         self.update_data_holder(new_key_to_write, self.owner_bot_id, data_type)
 

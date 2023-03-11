@@ -248,7 +248,6 @@ class SwarmBot(NetworkNode):
         msg_payload = message.get_message_payload()
         data_type = msg_payload["DATA_TYPE"]
         self.swarm_memory_interface.handle_swarm_memory_object_location_message(message)
-        print(data_type)
         if data_type == SwarmTask.__name__:
             self.task_queue_has_values.set()
 
