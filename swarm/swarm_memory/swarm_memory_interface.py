@@ -20,11 +20,12 @@ class SwarmMemoryInterface(object):
         if bot_with_obj == self.executor_interface.get_id():
             value = self.local_swarm_memory.read(key_to_read)["VALUE"]
         elif bot_with_obj is not None:
-            self.executor_interface.send_directed_message(
+            response = self.executor_interface.send_sync_directed_message(
                 bot_with_obj,
                 MessageTypes.REQUEST_SWARM_MEMORY_READ,
                 {"KEY_TO_READ": key_to_read}
             )
+            value = response.get_message_payload()["OBJECT_VALUE"]
         else:
             # else in this case means that the there is no key with the given value in the swarm memory
             pass
@@ -73,11 +74,13 @@ class SwarmMemoryInterface(object):
 
         if self.local_swarm_memory.has_data_key(object_key):
             object_info = self.local_swarm_memory.read(object_key)
-
-            self.executor_interface.send_directed_message(
-                message.get_sender_id(),
-                MessageTypes.RESPOND_TO_READ,
-                {"OBJECT_KEY": object_key, "OBJECT_VALUE": object_info["VALUE"], "DATA_TYPE": object_info["DATA_TYPE"]}
+            self.executor_interface.respond_to_message(
+                message,
+                {
+                    "OBJECT_KEY": object_key,
+                    "OBJECT_VALUE": object_info["VALUE"],
+                    "DATA_TYPE": object_info["DATA_TYPE"]
+                }
             )
 
     def handle_pop_from_swarm_memory_message(self, message):

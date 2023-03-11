@@ -187,6 +187,7 @@ class SwarmBot(NetworkNode):
 
     def send_directed_message(self, target_bot_id, message_type, message_payload):
         message_payload["TARGET_BOT_ID"] = target_bot_id
+        message_payload["ORIGINAL_SENDER_ID"] = self.get_id()
 
         if target_bot_id not in self.msg_intermediaries:
             raise Exception("ERROR: {} tried to send message to bot with no known path: {}".format(
@@ -198,16 +199,7 @@ class SwarmBot(NetworkNode):
         return NetworkNode.send_directed_message(self, first_intermediary_id, message_type, message_payload)
 
     def send_sync_directed_message(self, target_bot_id, message_type, message_payload):
-        message_payload["TARGET_BOT_ID"] = target_bot_id
-
-        if target_bot_id not in self.msg_intermediaries:
-            raise Exception("ERROR: {} tried to send message to bot with no known path: {}".format(
-                self.get_id(),
-                target_bot_id
-            ))
-        first_intermediary_id = self.msg_intermediaries[target_bot_id]["INTERMEDIARY_ID"]
-
-        msg_id = NetworkNode.send_directed_message(self, first_intermediary_id, message_type, message_payload)
+        msg_id = self.send_directed_message(target_bot_id, message_type, message_payload)
 
         self.response_locks[msg_id] = {
             "LOCK": threading.Condition(),
@@ -218,6 +210,11 @@ class SwarmBot(NetworkNode):
             if not check:
                 raise Exception("ERROR: Did not receive message response within time limit. Message ID: {}".format(msg_id))
         return self.response_locks[msg_id]["RESPONSE"]
+
+    def respond_to_message(self, message, message_payload):
+        message_payload["ORIGINAL_MESSAGE_ID"] = message.get_id()
+        target_bot_id = message.get_message_payload()["ORIGINAL_SENDER_ID"]
+        self.send_directed_message(target_bot_id, MessageTypes.MSG_RESPONSE, message_payload)
 
     def save_msg_intermediary(self, target_bot_id, intermediary_id, num_jumps):
         if target_bot_id == self.get_id():

@@ -1,24 +1,8 @@
 import logging
 import unittest
-import time
 
 from network_manager_test.network_node_test_class import NetworkNodeTestClass
-from swarm.swarm_task.swarm_task import SwarmTask
 from swarm.swarm_bot import SwarmBot
-
-
-class SimpleTask(SwarmTask):
-    def __init__(self):
-        super().__init__()
-        self.task_complete = False
-        self.sleep_time = 3
-
-    def is_complete(self):
-        return self.task_complete
-
-    def execute_task(self):
-        time.sleep(self.sleep_time)
-        self.task_complete = True
 
 
 class TestSwarmBotSwarmMemory(NetworkNodeTestClass):
@@ -56,10 +40,6 @@ class TestSwarmBotSwarmMemory(NetworkNodeTestClass):
 
         ret_val = test_swarm_bot_2.read_from_swarm_memory(test_mem_id)
 
-        self.wait_for_idle_network()
-
-        ret_val = test_swarm_bot_2.read_from_swarm_memory(test_mem_id)
-
         self.assertEqual(test_mem_val, ret_val)
 
     def test_can_access_swarm_memory_when_info_stored_on_non_directly_connected_swarm_bot(self):
@@ -72,7 +52,6 @@ class TestSwarmBotSwarmMemory(NetworkNodeTestClass):
         test_swarm_bot_3.startup()
 
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_2)
-
         test_swarm_bot_2.connect_to_network_node(test_swarm_bot_3)
 
         self.wait_for_idle_network()
@@ -85,10 +64,6 @@ class TestSwarmBotSwarmMemory(NetworkNodeTestClass):
         self.wait_for_idle_network()
 
         ret_val = test_swarm_bot_3.read_from_swarm_memory(test_mem_id)
-
-        self.wait_for_idle_network()
-
-        ret_val = test_swarm_bot_2.read_from_swarm_memory(test_mem_id)
 
         self.assertEqual(test_mem_val, ret_val)
 
