@@ -57,7 +57,7 @@ class SwarmMemoryInterface(object):
             )
         elif bot_with_obj is not None:
             self.local_swarm_memory.delete(key_to_pop)
-            self.executor_interface.send_directed_message(
+            response = self.executor_interface.send_sync_directed_message(
                 bot_with_obj,
                 MessageTypes.POP_FROM_SWARM_MEMORY,
                 {"KEY_TO_POP": key_to_pop}
@@ -66,6 +66,7 @@ class SwarmMemoryInterface(object):
                 MessageTypes.DELETE_FROM_SWARM_MEMORY,
                 {"KEY_TO_DELETE": key_to_pop}
             )
+            value = response.get_message_payload()["OBJECT_VALUE"]
         else:
             # else in this case means that the there is no key with the given value in the swarm memory
             pass
@@ -102,10 +103,9 @@ class SwarmMemoryInterface(object):
         if self.local_swarm_memory.has_data_key(key_to_pop):
             object_info = self.local_swarm_memory.read(key_to_pop)
 
-            self.executor_interface.send_directed_message(
-                message.get_sender_id(),
-                MessageTypes.RESPOND_TO_READ,
-                {"OBJECT_VALUE": object_info["VALUE"]}
+            self.executor_interface.respond_to_message(
+                message,
+                {"OBJECT_VALUE": object_info}
             )
 
             self.local_swarm_memory.delete(key_to_pop)

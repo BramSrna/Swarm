@@ -106,10 +106,13 @@ class SwarmBot(NetworkNode):
         return self.swarm_memory_interface.read_from_swarm_memory(key_to_read)
 
     def write_to_swarm_memory(self, key_to_write, value_to_write, data_type):
-        self.swarm_memory_interface.write_to_swarm_memory(key_to_write, value_to_write, data_type)
+        return self.swarm_memory_interface.write_to_swarm_memory(key_to_write, value_to_write, data_type)
 
     def update_swarm_memory(self, key_to_update, new_value):
-        self.swarm_memory_interface.update_swarm_memory(key_to_update, new_value)
+        return self.swarm_memory_interface.update_swarm_memory(key_to_update, new_value)
+
+    def pop_from_swarm_memory(self, key_to_pop):
+        return self.swarm_memory_interface.pop_from_swarm_memory(key_to_pop)
 
     def get_task_execution_history(self):
         return self.task_execution_history
