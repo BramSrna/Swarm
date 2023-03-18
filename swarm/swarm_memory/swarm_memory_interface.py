@@ -16,7 +16,7 @@ class SwarmMemoryInterface(object):
 
     def read_from_swarm_memory(self, path_to_read):
         bots_with_obj = self.local_swarm_memory.get_key_holder_ids(path_to_read)
-        print(bots_with_obj)
+        print(self.executor_interface.get_id(), path_to_read, bots_with_obj)
         final_value = None
         for bot_id in bots_with_obj:
             curr_value = None
@@ -54,7 +54,7 @@ class SwarmMemoryInterface(object):
         msg_payload = message.get_message_payload()
         path = msg_payload["PATH"]
         location_id = msg_payload["LOCATION_ID"]
-        self.local_swarm_memory.update_data_holder(path, location_id)
+        self.update_data_holder(path, location_id)
 
     def handle_request_swarm_memory_read_message(self, message):
         msg_payload = message.get_message_payload()
@@ -103,3 +103,12 @@ class SwarmMemoryInterface(object):
             else:
                 a[key] = b[key]
         return a
+
+    def get_data_to_holder_id_map(self):
+        return self.local_swarm_memory.get_data_to_holder_id_map()
+
+    def update_data_holder(self, path, data_holder_id):
+        self.local_swarm_memory.update_data_holder(path, data_holder_id)
+
+    def get_local_contents(self):
+        return self.local_swarm_memory.get_contents()

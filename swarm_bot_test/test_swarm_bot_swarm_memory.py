@@ -56,18 +56,25 @@ class TestSwarmBotSwarmMemory(NetworkNodeTestClass):
     def test_local_swarm_memory_get_key_holder_ids(self):
         test_instance = LocalSwarmMemory(0)
 
-        test_instance.update_data_holder("test", 0)
-        self.assertEqual(test_instance.get_key_holder_ids("test"), [0])
+        test_instance.update_data_holder("test_1", 0)
+        test_instance.update_data_holder("test_2", 1)
+        self.assertEqual(test_instance.get_key_holder_ids("test"), [])
+        self.assertEqual(test_instance.get_key_holder_ids("test_1"), [0])
+        self.assertEqual(test_instance.get_key_holder_ids("test_2"), [1])
 
         test_instance.update_data_holder("test/test2", 0)
         test_instance.update_data_holder("test/test3", 1)
         self.assertEqual(test_instance.get_key_holder_ids("test"), [0, 1])
+        self.assertEqual(test_instance.get_key_holder_ids("test/test2"), [0])
+        self.assertEqual(test_instance.get_key_holder_ids("test/test3"), [1])
 
         test_instance.update_data_holder("test/test2/test3", 0)
         test_instance.update_data_holder("test/test2/test4", 1)
         test_instance.update_data_holder("test/test5/test6", 2)
         test_instance.update_data_holder("test/test5/test7", 3)
         self.assertEqual(test_instance.get_key_holder_ids("test"), [0, 1, 2, 3])
+        self.assertEqual(test_instance.get_key_holder_ids("test/test2"), [0, 1])
+        self.assertEqual(test_instance.get_key_holder_ids("test/test5"), [2, 3])
 
         test_instance.update_data_holder("test/test2/test3", 0)
         test_instance.update_data_holder("test/test2/test4", 1)
@@ -286,6 +293,74 @@ class TestSwarmBotSwarmMemory(NetworkNodeTestClass):
 
         self.assertEqual({table_key_1: table_val_1}, test_swarm_bot_1.read_from_swarm_memory(table_id_1))
         self.assertEqual({table_key_1: table_val_2}, test_swarm_bot_1.read_from_swarm_memory(table_id_2))
+
+    def test_newly_added_bot_can_read_from_the_swarm(self):
+        test_swarm_bot_1 = self.create_network_node(SwarmBot)
+        test_swarm_bot_2 = self.create_network_node(SwarmBot)
+
+        test_swarm_bot_1.startup()
+        test_swarm_bot_2.startup()
+
+        test_mem_id_1 = "TEST_ID_1"
+        test_mem_val_1 = "TEST_VAL_1"
+
+        test_mem_id_2 = "TEST_ID_2"
+        test_mem_val_2 = "TEST_VAL_2"
+
+        test_swarm_bot_1.write_to_swarm_memory(test_mem_id_1, test_mem_val_1)
+        self.wait_for_idle_network()
+
+        test_swarm_bot_2.write_to_swarm_memory(test_mem_id_2, test_mem_val_2)
+        self.wait_for_idle_network()
+
+        self.assertEqual(None, test_swarm_bot_1.read_from_swarm_memory(test_mem_id_2))
+        self.assertEqual(None, test_swarm_bot_2.read_from_swarm_memory(test_mem_id_1))
+
+        self.assertEqual(test_mem_val_1, test_swarm_bot_1.read_from_swarm_memory(test_mem_id_1))
+        self.assertEqual(test_mem_val_2, test_swarm_bot_2.read_from_swarm_memory(test_mem_id_2))
+
+        test_swarm_bot_1.connect_to_network_node(test_swarm_bot_2)
+        self.wait_for_idle_network()
+
+        print(test_swarm_bot_1.get_id(), test_swarm_bot_1.get_data_to_holder_id_map())
+        print(test_swarm_bot_2.get_id(), test_swarm_bot_2.get_data_to_holder_id_map())
+
+        self.assertEqual(test_mem_val_2, test_swarm_bot_1.read_from_swarm_memory(test_mem_id_2))
+        self.assertEqual(test_mem_val_1, test_swarm_bot_2.read_from_swarm_memory(test_mem_id_1))
+
+        self.assertEqual(test_mem_val_1, test_swarm_bot_1.read_from_swarm_memory(test_mem_id_1))
+        self.assertEqual(test_mem_val_2, test_swarm_bot_2.read_from_swarm_memory(test_mem_id_2))
+
+    def test_swarm_memory_integrity_is_maintained_when_bots_leaves_the_network(self):
+        test_swarm_bot_1 = self.create_network_node(SwarmBot)
+        test_swarm_bot_2 = self.create_network_node(SwarmBot)
+
+        test_swarm_bot_1.startup()
+        test_swarm_bot_2.startup()
+
+        test_swarm_bot_1.connect_to_network_node(test_swarm_bot_2)
+        self.wait_for_idle_network()
+
+        test_mem_id_1 = "TEST_ID_1"
+        test_mem_val_1 = "TEST_VAL_1"
+
+        test_mem_id_2 = "TEST_ID_2"
+        test_mem_val_2 = "TEST_VAL_2"
+
+        test_swarm_bot_1.write_to_swarm_memory(test_mem_id_1, test_mem_val_1)
+        test_swarm_bot_2.write_to_swarm_memory(test_mem_id_2, test_mem_val_2)
+        self.wait_for_idle_network()
+
+        self.assertEqual(test_mem_val_1, test_swarm_bot_1.read_from_swarm_memory(test_mem_id_1))
+        self.assertEqual(test_mem_val_2, test_swarm_bot_1.read_from_swarm_memory(test_mem_id_2))
+        self.assertEqual(test_mem_val_1, test_swarm_bot_2.read_from_swarm_memory(test_mem_id_1))
+        self.assertEqual(test_mem_val_2, test_swarm_bot_2.read_from_swarm_memory(test_mem_id_2))
+
+        test_swarm_bot_2.teardown()
+        self.wait_for_idle_network()
+
+        self.assertEqual(test_mem_val_1, test_swarm_bot_1.read_from_swarm_memory(test_mem_id_1))
+        self.assertEqual(test_mem_val_2, test_swarm_bot_1.read_from_swarm_memory(test_mem_id_2))
 
 
 if __name__ == "__main__":
