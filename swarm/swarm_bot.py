@@ -1,6 +1,8 @@
 import threading
 import os
 import copy
+import collections
+import random
 
 from network_manager.network_node.network_node import NetworkNode
 from swarm.executor_interface import ExecutorInterface
@@ -61,14 +63,25 @@ class SwarmBot(NetworkNode):
         self.assign_msg_handler(str(MessageTypes.BOT_TEARDOWN), self.handle_bot_teardown_message)
         self.assign_msg_handler(str(MessageTypes.REQUEST_PATH_TO_BOT), self.handle_request_path_to_bot)
         self.assign_msg_handler(str(MessageTypes.MSG_RESPONSE), self.handle_msg_response_message)
-        self.assign_msg_handler(str(MessageTypes.UPDATE_SWARM_MEMORY_VALUE), self.handle_update_swarm_memory_value)
+        self.assign_msg_handler(str(MessageTypes.UPDATE_SWARM_MEMORY_VALUE), self.handle_update_swarm_memory_value_message)
+        self.assign_msg_handler(str(MessageTypes.SYNC_SWARM_MEMORY), self.handle_sync_swarm_memory_message)
+        self.assign_msg_handler(
+            str(MessageTypes.TRANSFER_SWARM_MEMORY_CONTENTS),
+            self.handle_transfer_swarm_memory_contents_message
+        )
 
     def startup(self):
         NetworkNode.startup(self)
         self.start_task_executor()
 
     def teardown(self):
-        self.send_propagation_message(MessageTypes.BOT_TEARDOWN, {"BOT_ID": self.get_id()})
+        if len(self.msg_channels.keys()) > 0:
+            self.send_directed_message(
+                random.choice(list(self.msg_channels.keys())),
+                MessageTypes.TRANSFER_SWARM_MEMORY_CONTENTS,
+                {"SWARM_MEMORY_CONTENTS": self.swarm_memory_interface.get_local_contents()}
+            )
+            self.send_propagation_message(MessageTypes.BOT_TEARDOWN, {"BOT_ID": self.get_id()})
         self.set_task_executor_status(False)
         self.set_message_inbox_status(False)
         self.set_message_outbox_status(False)
@@ -336,6 +349,11 @@ class SwarmBot(NetworkNode):
                 MessageTypes.SYNC_INTERMEDIARIES,
                 {"INTERMEDIARY_LIST": self.msg_intermediaries}
             )
+            self.send_directed_message(
+                new_id,
+                MessageTypes.SYNC_SWARM_MEMORY,
+                {"SWARM_MEMORY_REF": self.swarm_memory_interface.get_data_to_holder_id_map()}
+            )
 
     def handle_accept_connection_request_message(self, message):
         NetworkNode.handle_accept_connection_request_message(self, message)
@@ -360,8 +378,8 @@ class SwarmBot(NetworkNode):
 
         if bot_to_remove in self.msg_intermediaries:
             self.msg_intermediaries.pop(bot_to_remove)
-        if bot_to_remove in self.msg_channels:
-            self.msg_channels.pop(bot_to_remove)
+
+        NetworkNode.disconnect_from_network_node(self, bot_to_remove)
 
         needs_new_path = []
         for target_bot_id, intermediary_info in self.msg_intermediaries.items():
@@ -393,11 +411,49 @@ class SwarmBot(NetworkNode):
         with self.response_locks[original_message_id]["LOCK"]:
             self.response_locks[original_message_id]["LOCK"].notify_all()
 
-    def handle_update_swarm_memory_value(self, message):
+    def handle_update_swarm_memory_value_message(self, message):
         message_payload = message.get_message_payload()
         key_to_update = message_payload["KEY_TO_UPDATE"]
         new_value = message_payload["NEW_VALUE"]
         self.update_swarm_memory(key_to_update, new_value)
+
+    def handle_sync_swarm_memory_message(self, message):
+        message_payload = message.get_message_payload()
+        swarm_memory_ref = message_payload["SWARM_MEMORY_REF"]
+        flattend_ref = self.flatten(swarm_memory_ref)
+        for path, bot_id in flattend_ref.items():
+            self.swarm_memory_interface.update_data_holder(path, bot_id)
+            if "TASK_QUEUE" in path:
+                self.task_queue_has_values.set()
+
+        final_swarm_memory_ref = self.flatten(self.swarm_memory_interface.get_data_to_holder_id_map())
+        for path, bot_id in final_swarm_memory_ref.items():
+            self.send_propagation_message(
+                MessageTypes.SWARM_MEMORY_OBJECT_LOCATION,
+                {"PATH": path, "LOCATION_ID": bot_id}
+            )
+
+    def get_data_to_holder_id_map(self):
+        return self.swarm_memory_interface.get_data_to_holder_id_map()
+
+    def flatten(self, dictionary, parent_key=False, separator='/'):
+        items = []
+        for key, value in dictionary.items():
+            new_key = str(parent_key) + separator + key if parent_key else key
+            if isinstance(value, collections.abc.MutableMapping):
+                items.extend(self.flatten(value, new_key, separator).items())
+            elif isinstance(value, list):
+                for k, v in enumerate(value):
+                    items.extend(self.flatten({str(k): v}, new_key).items())
+            else:
+                items.append((new_key, value))
+        return dict(items)
+
+    def handle_transfer_swarm_memory_contents_message(self, message):
+        message_payload = message.get_message_payload()
+        contents = self.flatten(message_payload["SWARM_MEMORY_CONTENTS"])
+        for path, value in contents.items():
+            self.write_to_swarm_memory(path, value)
 
     def task_executor_loop(self):
         while (not self.run_node.is_set()) and (not self.run_task_executor.is_set()):

@@ -86,10 +86,15 @@ class LocalSwarmMemory(object):
     def get_key_holder_ids(self, path):
         path_components = path.split("/")
         curr_dict = self.data_to_holder_id_map
-        for i in range(len(path_components) - 1):
+        for i in range(len(path_components)):
             key = path_components[i]
+            if key not in curr_dict:
+                return []
             curr_dict = curr_dict[key]
-        return list(set(self.get_nested_dict_values(curr_dict)))
+        if isinstance(curr_dict, dict):
+            return list(set(self.get_nested_dict_values(curr_dict)))
+        else:
+            return [curr_dict]
 
     def get_nested_dict_values(self, dict_to_parse):
         for value in dict_to_parse.values():
@@ -97,3 +102,9 @@ class LocalSwarmMemory(object):
                 yield from self.get_nested_dict_values(value)
             else:
                 yield value
+
+    def get_data_to_holder_id_map(self):
+        return self.data_to_holder_id_map
+
+    def get_contents(self):
+        return self.contents
