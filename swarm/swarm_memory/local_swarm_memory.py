@@ -5,42 +5,95 @@ class LocalSwarmMemory(object):
         self.contents = {}
         self.data_to_holder_id_map = {}
 
-    def write(self, new_key_to_write, new_value_to_write, data_type):
-        self.contents[new_key_to_write] = new_value_to_write
-        self.update_data_holder(new_key_to_write, self.owner_bot_id, data_type)
+    def write(self, path_to_write, value_to_write):
+        path_components = path_to_write.split("/")
+        curr_dict = self.contents
+        for i in range(len(path_components)):
+            key = path_components[i]
+            if i == len(path_components) - 1:
+                curr_dict[key] = value_to_write
+            else:
+                if key not in curr_dict:
+                    curr_dict[key] = {}
+                if (not isinstance(curr_dict[key], dict)):
+                    curr_dict[key] = {}
+                curr_dict = curr_dict[key]
+        self.update_data_holder(path_to_write, self.owner_bot_id)
 
-    def read(self, key_to_read):
-        if key_to_read in self.contents:
-            return self.contents[key_to_read]
-        return None
+    def read(self, path_to_read):
+        path_components = path_to_read.split("/")
+        curr_dict = self.contents
+        for i in range(len(path_components)):
+            key = path_components[i]
+            if i == len(path_components) - 1:
+                if key in curr_dict:
+                    return curr_dict[key]
+                return None
+            else:
+                curr_dict = curr_dict[key]
 
-    def update(self, key_to_update, new_value):
-        if self.has_data_key(key_to_update):
-            self.contents[key_to_update] = new_value
+    def delete(self, path_to_delete):
+        path_components = path_to_delete.split("/")
+        curr_dict = self.contents
+        for i in range(len(path_components)):
+            key = path_components[i]
+            if i == len(path_components) - 1:
+                if key in curr_dict:
+                    curr_dict.pop(key)
+            else:
+                if key not in curr_dict:
+                    curr_dict[key] = {}
+                if (not isinstance(curr_dict[key], dict)):
+                    curr_dict[key] = {}
+                curr_dict = curr_dict[key]
 
-    def delete(self, key_to_delete):
-        if key_to_delete in self.contents:
-            self.contents.pop(key_to_delete)
-        if key_to_delete in self.data_to_holder_id_map:
-            self.data_to_holder_id_map.pop(key_to_delete)
+        curr_dict = self.data_to_holder_id_map
+        for i in range(len(path_components)):
+            key = path_components[i]
+            if i == len(path_components) - 1:
+                if key in curr_dict:
+                    curr_dict.pop(key)
+            else:
+                curr_dict = curr_dict[key]
 
-    def has_data_key(self, data_key):
-        return data_key in self.contents
+    def has_path(self, path):
+        path_components = path.split("/")
+        curr_dict = self.contents
+        for i in range(len(path_components)):
+            key = path_components[i]
+            if key not in curr_dict:
+                return False
+            curr_dict = curr_dict[key]
+        return True
 
-    def update_data_holder(self, data_key, data_holder_id, data_type):
-        self.data_to_holder_id_map[data_key] = {
-            "DATA_TYPE": data_type,
-            "HOLDER_ID": data_holder_id
-        }
+    def update_data_holder(self, path, data_holder_id):
+        if (data_holder_id != self.owner_bot_id) and (self.has_path(path)):
+            self.delete(path)
 
-    def get_data_holder_id(self, data_key):
-        if data_key in self.data_to_holder_id_map:
-            return self.data_to_holder_id_map[data_key]["HOLDER_ID"]
-        return None
+        path_components = path.split("/")
+        curr_dict = self.data_to_holder_id_map
+        for i in range(len(path_components)):
+            key = path_components[i]
+            if i == len(path_components) - 1:
+                curr_dict[key] = data_holder_id
+            else:
+                if key not in curr_dict:
+                    curr_dict[key] = {}
+                if (not isinstance(curr_dict[key], dict)):
+                    curr_dict[key] = {}
+                curr_dict = curr_dict[key]
 
-    def get_ids_of_contents_of_type(self, type_to_get):
-        ids = []
-        for data_key, data_info in self.data_to_holder_id_map.items():
-            if data_info["DATA_TYPE"] == type_to_get:
-                ids.append(data_key)
-        return ids
+    def get_key_holder_ids(self, path):
+        path_components = path.split("/")
+        curr_dict = self.data_to_holder_id_map
+        for i in range(len(path_components) - 1):
+            key = path_components[i]
+            curr_dict = curr_dict[key]
+        return list(set(self.get_nested_dict_values(curr_dict)))
+
+    def get_nested_dict_values(self, dict_to_parse):
+        for value in dict_to_parse.values():
+            if isinstance(value, dict):
+                yield from self.get_nested_dict_values(value)
+            else:
+                yield value
