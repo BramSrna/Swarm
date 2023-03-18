@@ -6,7 +6,6 @@ from network_manager.network_node.network_node import NetworkNode
 from swarm.executor_interface import ExecutorInterface
 from swarm.message_types import MessageTypes
 from swarm.swarm_task.task_scheduling_algorithms import simple_task_sort
-from swarm.swarm_task.swarm_task import SwarmTask
 from swarm.swarm_memory.swarm_memory_interface import SwarmMemoryInterface
 from swarm.swarm_task.task_execution_controller import TaskExecutionController
 
@@ -56,7 +55,6 @@ class SwarmBot(NetworkNode):
         self.assign_msg_handler(str(MessageTypes.DELETE_FROM_SWARM_MEMORY), self.handle_delete_from_swarm_memory_message)
         self.assign_msg_handler(str(MessageTypes.TASK_OUTPUT), self.handle_task_output_message)
         self.assign_msg_handler(str(MessageTypes.EXECUTION_GROUP_DELETION), self.handle_execution_group_deletion_message)
-        self.assign_msg_handler(str(MessageTypes.RESPOND_TO_READ), self.handle_respond_to_read_message)
         self.assign_msg_handler(str(MessageTypes.NEW_SWARM_BOT_ID), self.handle_new_swarm_bot_id_message)
         self.assign_msg_handler(str(MessageTypes.FORWARD_MESSAGE), self.handle_forward_message_message)
         self.assign_msg_handler(str(MessageTypes.SYNC_INTERMEDIARIES), self.handle_sync_intermediaries_message)
@@ -89,30 +87,29 @@ class SwarmBot(NetworkNode):
         for i in range(len(tasks)):
             curr_task = tasks[i]
             self.write_to_swarm_memory(
-                curr_task.get_id(),
+                "TASK_QUEUE/" + str(curr_task.get_id()),
                 {
                     "TASK": curr_task,
                     "PARENT_BUNDLE_ID": new_task_bundle.get_id(),
                     "REQ_NUM_BOTS": new_task_bundle.get_req_num_bots(),
                     "INDEX_IN_BUNDLE": i,
                     "LISTENER_ID": listener_bot_id
-                },
-                SwarmTask.__name__
+                }
             )
             self.task_queue_has_values.set()
         return True
 
-    def read_from_swarm_memory(self, key_to_read):
-        return self.swarm_memory_interface.read_from_swarm_memory(key_to_read)
+    def read_from_swarm_memory(self, path_to_read):
+        return self.swarm_memory_interface.read_from_swarm_memory(path_to_read)
 
-    def write_to_swarm_memory(self, key_to_write, value_to_write, data_type):
-        return self.swarm_memory_interface.write_to_swarm_memory(key_to_write, value_to_write, data_type)
+    def write_to_swarm_memory(self, path_to_write, value_to_write):
+        return self.swarm_memory_interface.write_to_swarm_memory(path_to_write, value_to_write)
 
-    def update_swarm_memory(self, key_to_update, new_value):
-        return self.swarm_memory_interface.update_swarm_memory(key_to_update, new_value)
+    def update_swarm_memory(self, path_to_update, new_value):
+        return self.swarm_memory_interface.update_swarm_memory(path_to_update, new_value)
 
-    def pop_from_swarm_memory(self, key_to_pop):
-        return self.swarm_memory_interface.pop_from_swarm_memory(key_to_pop)
+    def pop_from_swarm_memory(self, path_to_pop):
+        return self.swarm_memory_interface.pop_from_swarm_memory(path_to_pop)
 
     def get_task_execution_history(self):
         return self.task_execution_history
@@ -125,20 +122,18 @@ class SwarmBot(NetworkNode):
             self.run_task_executor.set()
             self.task_queue_has_values.set()
 
-    def get_task_bundle_queue(self):
-        return self.swarm_memory_interface.get_ids_of_contents_of_type(SwarmTask.__name__)
-
     def get_task_queue(self):
-        return self.swarm_memory_interface.get_ids_of_contents_of_type(SwarmTask.__name__)
+        return self.read_from_swarm_memory("TASK_QUEUE")
 
     def get_next_task_to_execute(self):
         next_task_info = None
-        task_queue = self.swarm_memory_interface.get_ids_of_contents_of_type(SwarmTask.__name__)
-        while ((next_task_info is None) and (len(task_queue) > 0)):
-            task_queue.sort(key=self.task_scheduling_algorithm)
-            next_task_id = task_queue.pop(0)
-            next_task_info = self.swarm_memory_interface.pop_from_swarm_memory(next_task_id)
-            task_queue = self.swarm_memory_interface.get_ids_of_contents_of_type(SwarmTask.__name__)
+        task_queue = self.get_task_queue()
+        if task_queue is not None:
+            task_ids = list(task_queue.keys())
+            task_ids.sort(key=self.task_scheduling_algorithm)
+            while ((next_task_info is None) and (len(task_queue) > 0)):
+                next_task_id = task_ids.pop(0)
+                next_task_info = self.pop_from_swarm_memory("TASK_QUEUE/" + str(next_task_id))
 
         return next_task_info
 
@@ -249,9 +244,9 @@ class SwarmBot(NetworkNode):
 
     def handle_swarm_memory_object_location_message(self, message):
         msg_payload = message.get_message_payload()
-        data_type = msg_payload["DATA_TYPE"]
+        path = msg_payload["PATH"]
         self.swarm_memory_interface.handle_swarm_memory_object_location_message(message)
-        if data_type == SwarmTask.__name__:
+        if "TASK_QUEUE" in path:
             self.task_queue_has_values.set()
 
     def handle_request_swarm_memory_read_message(self, message):
@@ -306,9 +301,9 @@ class SwarmBot(NetworkNode):
         msg_payload = message.get_message_payload()
         object_key = msg_payload["OBJECT_KEY"]
         object_value = msg_payload["OBJECT_VALUE"]
-        data_type = msg_payload["DATA_TYPE"]
-        self.write_to_swarm_memory(object_key, object_value, data_type)
-        if data_type == SwarmTask.__name__:
+        table_id = msg_payload["TABLE_ID"]
+        self.write_to_swarm_memory(table_id, object_key, object_value)
+        if table_id == "TASK_QUEUE":
             self.task_queue_has_values.set()
 
     def handle_new_swarm_bot_id_message(self, message):
