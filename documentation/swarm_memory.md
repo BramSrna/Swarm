@@ -46,3 +46,9 @@ Read a new value from the swarm memory.
 ## New proposed solution
 1. Bots create a query and propagate it throughout the network in an async manner
 2. When bots receive the message, they parse and handle the message, sending a new message with the response if needed
+
+
+# Use ML to optimize:
+1. Location of information to ensure it is close to bots that need it
+2. Number of copies of information
+3. Load balancing of accesses, transfers, and memory use
