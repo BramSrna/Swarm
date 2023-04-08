@@ -1,5 +1,5 @@
 from swarm.swarm_task.swarm_task import SwarmTask
-from federated_learning.federated_learning_model import FederatedLearningModel
+from federated_learning_task_template.federated_learning_model import FederatedLearningModel
 import numpy
 
 

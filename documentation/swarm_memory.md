@@ -46,3 +46,8 @@ Read a new value from the swarm memory.
 ## New proposed solution
 1. Bots create a query and propagate it throughout the network in an async manner
 2. When bots receive the message, they parse and handle the message, sending a new message with the response if needed
+
+# Use ML to optimize:
+1. Number of copies of information: When information is stored in swarm memory, it is at risk of being lost if something goes wrong in the bot holding the information such as the bot losing connection to the swarm or the data being corrupted. To help prevent this, the data can be duplicated accross multiple bots. As more bots hold the information, the data becomes more secure. The downside, is that this adds overhead to the system as the information needs to be maintained accross multiple bots and it causes more memory to be consumed. Machine learning can be used to duplicate information as needed to maintain good system health.
+2. Location of information to ensure it is close to bots that need it
+3. Load balancing of accesses, transfers, and memory use

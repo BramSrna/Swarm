@@ -1,5 +1,5 @@
 from sklearn import linear_model
-from federated_learning.federated_learning_block import FederatedLearningBlock
+from federated_learning_task_template.federated_learning_block import FederatedLearningBlock
 import copy
 
 # https://scikit-learn.org/0.15/modules/generated/sklearn.linear_model.SGDRegressor.html#sklearn.linear_model.SGDRegressor.partial_fit

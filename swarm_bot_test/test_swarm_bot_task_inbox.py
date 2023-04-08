@@ -96,6 +96,8 @@ class TestSwarmBotTaskInbox(NetworkNodeTestClass):
 
         self.wait_for_idle_network()
 
+        self.assertTrue(test_task_bundle.is_complete())
+
         bot_2_ret_val = test_swarm_bot_2.read_from_swarm_memory("TASK_QUEUE/" + str(task.get_id()))
 
         self.assertEqual(None, bot_2_ret_val)
