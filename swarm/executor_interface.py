@@ -28,3 +28,6 @@ class ExecutorInterface(object):
 
     def respond_to_message(self, message, message_payload):
         return self.swarm_bot.respond_to_message(message, message_payload)
+
+    def get_id_with_shortest_path_from_list(self, list_of_ids):
+        return self.swarm_bot.get_id_with_shortest_path_from_list(list_of_ids)

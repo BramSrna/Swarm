@@ -1,8 +1,8 @@
 from swarm.swarm_bot import SwarmBot
 from swarm.swarm_manager import SwarmManager
-from federated_learning.federated_learning_client_task import FederatedLearningClientTask
-from federated_learning.federated_learning_aggregator_task import FederatedLearningAggregatorTask
-from federated_learning.federated_learning_node_task import FederatedLearningNodeTask
+from federated_learning_task_template.federated_learning_client_task import FederatedLearningClientTask
+from federated_learning_task_template.federated_learning_aggregator_task import FederatedLearningAggregatorTask
+from federated_learning_task_template.federated_learning_node_task import FederatedLearningNodeTask
 
 if __name__ == "__main__":
     manager = SwarmManager()
