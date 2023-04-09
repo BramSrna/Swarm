@@ -15,6 +15,15 @@ class SwarmMemoryInterface(object):
         self.data_to_holder_id_map = {}
         self.local_usage_stats = {}
 
+        self.executor_interface.assign_msg_handler(str(MessageTypes.REQUEST_SWARM_MEMORY_READ), self.handle_request_swarm_memory_read_message)
+        self.executor_interface.assign_msg_handler(str(MessageTypes.SWARM_MEMORY_OBJECT_LOCATION), self.handle_swarm_memory_object_location_message)
+        self.executor_interface.assign_msg_handler(str(MessageTypes.UPDATE_SWARM_MEMORY_VALUE), self.handle_update_swarm_memory_value_message)
+        self.executor_interface.assign_msg_handler(str(MessageTypes.DELETE_FROM_SWARM_MEMORY), self.handle_delete_from_swarm_memory_message)
+        self.executor_interface.assign_msg_handler(str(MessageTypes.REQUEST_NEW_HOLDER), self.handle_request_new_holder_message)
+        self.executor_interface.assign_msg_handler(str(MessageTypes.TRANSFER_SWARM_MEMORY_CONTENTS), self.handle_transfer_swarm_memory_contents_message)
+        self.executor_interface.assign_msg_handler(str(MessageTypes.REMOVE_SWARM_MEMORY_OBJECT_LOCATION), self.handle_remove_swarm_memory_object_location_message)
+        self.executor_interface.assign_msg_handler(str(MessageTypes.BOT_TEARDOWN), self.handle_bot_teardown)
+
     def get_local_contents(self):
         return self.local_swarm_memory.get_contents()
 
@@ -139,14 +148,16 @@ class SwarmMemoryInterface(object):
         id_to_remove = payload["ID_TO_REMOVE"]
         self.__remove_data_holder(path, id_to_remove)
 
-    def handle_bot_teardown(self, bot_id):
+    def handle_bot_teardown(self, message):
+        bot_to_remove = message.get_message_payload()["BOT_ID"]
+
         for path in self.local_usage_stats:
-            if bot_id in self.local_usage_stats[path]["ACCESSES"]:
-                self.local_usage_stats[path]["ACCESSES"].pop(bot_id)
+            if bot_to_remove in self.local_usage_stats[path]["ACCESSES"]:
+                self.local_usage_stats[path]["ACCESSES"].pop(bot_to_remove)
 
         flat_data_to_holder_id_map = self.__flatten(self.data_to_holder_id_map)
         for path, _ in flat_data_to_holder_id_map.items():
-            self.__remove_data_holder(path, bot_id)
+            self.__remove_data_holder(path, bot_to_remove)
 
     def add_data_holder(self, path, id_to_add):
         path_components = path.split("/")

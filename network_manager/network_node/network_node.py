@@ -163,9 +163,10 @@ class NetworkNode(MessageChannelUser):
 
         @return None
         """
-        if msg_type in self.msg_handler_dict:
-            raise Exception("ERROR: Node already has a handler for message type {}".format(msg_type))
-        self.msg_handler_dict[msg_type] = handler
+        if msg_type not in self.msg_handler_dict:
+            self.msg_handler_dict[msg_type] = []
+        if handler not in self.msg_handler_dict[msg_type]:
+            self.msg_handler_dict[msg_type].append(handler)
 
     def get_id(self) -> int:
         """
@@ -585,7 +586,8 @@ class NetworkNode(MessageChannelUser):
                     self.rcvd_messages[msg_id] = {"MSG": message, "NUM_TIMES_RCVD": 1}
 
                     if message_type in self.msg_handler_dict:
-                        self.msg_handler_dict[message_type](message)
+                        for handler in self.msg_handler_dict[message_type]:
+                            handler(message)
                     else:
                         self.logger.warning("Warning: Received message type with no assigned handler: " + str(message_type))
 
