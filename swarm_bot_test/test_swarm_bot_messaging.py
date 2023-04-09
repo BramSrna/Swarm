@@ -10,9 +10,6 @@ class TestSwarmBotMessaging(NetworkNodeTestClass):
         test_swarm_bot_1 = self.create_network_node(SwarmBot)
         test_swarm_bot_2 = self.create_network_node(SwarmBot)
 
-        test_swarm_bot_1.startup()
-        test_swarm_bot_2.startup()
-
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_2)
 
         self.wait_for_idle_network()
@@ -26,9 +23,6 @@ class TestSwarmBotMessaging(NetworkNodeTestClass):
     def test_swarm_bot_can_send_synchronous_messages_between_directly_connected_bots(self):
         test_swarm_bot_1 = self.create_network_node(SwarmBot)
         test_swarm_bot_2 = self.create_network_node(SwarmBot)
-
-        test_swarm_bot_1.startup()
-        test_swarm_bot_2.startup()
 
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_2)
 
@@ -44,10 +38,6 @@ class TestSwarmBotMessaging(NetworkNodeTestClass):
         test_swarm_bot_2 = self.create_network_node(SwarmBot)
         test_swarm_bot_3 = self.create_network_node(SwarmBot)
 
-        test_swarm_bot_1.startup()
-        test_swarm_bot_2.startup()
-        test_swarm_bot_3.startup()
-
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_3)
 
         self.wait_for_idle_network()
@@ -62,10 +52,6 @@ class TestSwarmBotMessaging(NetworkNodeTestClass):
         test_swarm_bot_1 = self.create_network_node(SwarmBot)
         test_swarm_bot_2 = self.create_network_node(SwarmBot)
         test_swarm_bot_3 = self.create_network_node(SwarmBot)
-
-        test_swarm_bot_1.startup()
-        test_swarm_bot_2.startup()
-        test_swarm_bot_3.startup()
 
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_3)
 

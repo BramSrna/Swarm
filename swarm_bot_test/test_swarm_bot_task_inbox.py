@@ -31,10 +31,6 @@ class TestSwarmBotTaskInbox(NetworkNodeTestClass):
         test_swarm_bot_2 = self.create_network_node(SwarmBot)
         test_swarm_bot_3 = self.create_network_node(SwarmBot)
 
-        test_swarm_bot_1.startup()
-        test_swarm_bot_2.startup()
-        test_swarm_bot_3.startup()
-
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_2)
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_3)
         test_swarm_bot_2.connect_to_network_node(test_swarm_bot_3)
@@ -63,10 +59,6 @@ class TestSwarmBotTaskInbox(NetworkNodeTestClass):
         test_swarm_bot_1 = self.create_network_node(SwarmBot)
         test_swarm_bot_2 = self.create_network_node(SwarmBot)
         test_swarm_bot_3 = self.create_network_node(SwarmBot)
-
-        test_swarm_bot_1.startup()
-        test_swarm_bot_2.startup()
-        test_swarm_bot_3.startup()
 
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_2)
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_3)

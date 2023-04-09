@@ -12,8 +12,6 @@ class TestSwarmMemory(NetworkNodeTestClass):
     def test_contents_written_to_one_table_are_unique_to_that_table(self):
         test_swarm_bot_1 = self.create_network_node(SwarmBot)
 
-        test_swarm_bot_1.startup()
-
         table_id_1 = "TABLE_ID_1"
         table_id_2 = "TABLE_ID_2"
 
@@ -31,9 +29,6 @@ class TestSwarmMemory(NetworkNodeTestClass):
     def test_newly_added_bot_can_read_from_the_swarm(self):
         test_swarm_bot_1 = self.create_network_node(SwarmBot)
         test_swarm_bot_2 = self.create_network_node(SwarmBot)
-
-        test_swarm_bot_1.startup()
-        test_swarm_bot_2.startup()
 
         test_mem_id_1 = "TEST_ID_1"
         test_mem_val_1 = "TEST_VAL_1"
@@ -69,9 +64,6 @@ class TestSwarmMemory(NetworkNodeTestClass):
         test_swarm_bot_1 = self.create_network_node(SwarmBot)
         test_swarm_bot_2 = self.create_network_node(SwarmBot)
 
-        test_swarm_bot_1.startup()
-        test_swarm_bot_2.startup()
-
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_2)
         self.wait_for_idle_network()
 
@@ -99,8 +91,6 @@ class TestSwarmMemory(NetworkNodeTestClass):
     def test_sm_contents_wont_change_when_solitary_bot_hits_the_optimization_threshold_is_hit(self):
         test_swarm_bot_1 = self.create_network_node(SwarmBot)
 
-        test_swarm_bot_1.startup()
-
         self.wait_for_idle_network()
 
         test_key = "ID_1"
@@ -127,10 +117,6 @@ class TestSwarmMemory(NetworkNodeTestClass):
         test_swarm_bot_1 = self.create_network_node(SwarmBot)
         test_swarm_bot_2 = self.create_network_node(SwarmBot)
         test_swarm_bot_3 = self.create_network_node(SwarmBot)
-
-        test_swarm_bot_1.startup()
-        test_swarm_bot_2.startup()
-        test_swarm_bot_3.startup()
 
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_2)
         test_swarm_bot_2.connect_to_network_node(test_swarm_bot_3)
@@ -164,10 +150,6 @@ class TestSwarmMemory(NetworkNodeTestClass):
         test_swarm_bot_1 = self.create_network_node(SwarmBot)
         test_swarm_bot_2 = self.create_network_node(SwarmBot)
         test_swarm_bot_3 = self.create_network_node(SwarmBot)
-
-        test_swarm_bot_1.startup()
-        test_swarm_bot_2.startup()
-        test_swarm_bot_3.startup()
 
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_2)
         test_swarm_bot_2.connect_to_network_node(test_swarm_bot_3)

@@ -11,10 +11,6 @@ class TestFullConnectivitySimulation(NetworkNodeTestClass):
         test_swarm_bot_2 = self.create_network_node(SwarmBot)
         test_swarm_bot_3 = self.create_network_node(SwarmBot)
 
-        test_swarm_bot_1.startup()
-        test_swarm_bot_2.startup()
-        test_swarm_bot_3.startup()
-
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_2)
 
         test_swarm_bot_2.connect_to_network_node(test_swarm_bot_3)
@@ -31,10 +27,6 @@ class TestFullConnectivitySimulation(NetworkNodeTestClass):
         test_swarm_bot_1 = self.create_network_node(SwarmBot)
         test_swarm_bot_2 = self.create_network_node(SwarmBot)
         test_swarm_bot_3 = self.create_network_node(SwarmBot)
-
-        test_swarm_bot_1.startup()
-        test_swarm_bot_2.startup()
-        test_swarm_bot_3.startup()
 
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_2)
         self.wait_for_idle_network()
@@ -72,7 +64,6 @@ class TestFullConnectivitySimulation(NetworkNodeTestClass):
         test_bots = []
         for _ in range(num_bots):
             new_bot = self.create_network_node(SwarmBot)
-            new_bot.startup()
             if len(test_bots) > 0:
                 new_bot.connect_to_network_node(test_bots[-1])
                 self.wait_for_idle_network()
@@ -97,7 +88,6 @@ class TestFullConnectivitySimulation(NetworkNodeTestClass):
         test_bots = []
         for _ in range(num_bots):
             new_bot = self.create_network_node(SwarmBot)
-            new_bot.startup()
             if len(test_bots) > 0:
                 new_bot.connect_to_network_node(test_bots[-1])
                 self.wait_for_idle_network()
@@ -126,12 +116,6 @@ class TestFullConnectivitySimulation(NetworkNodeTestClass):
         test_swarm_bot_3 = self.create_network_node(SwarmBot)
         test_swarm_bot_4 = self.create_network_node(SwarmBot)
         test_swarm_bot_5 = self.create_network_node(SwarmBot)
-
-        test_swarm_bot_1.startup()
-        test_swarm_bot_2.startup()
-        test_swarm_bot_3.startup()
-        test_swarm_bot_4.startup()
-        test_swarm_bot_5.startup()
 
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_2)
         self.wait_for_idle_network()
@@ -206,11 +190,6 @@ class TestFullConnectivitySimulation(NetworkNodeTestClass):
             self.create_network_node(SwarmBot),
             self.create_network_node(SwarmBot)
         ]
-
-        test_bots[0].startup()
-        test_bots[1].startup()
-        test_bots[2].startup()
-        test_bots[3].startup()
 
         test_bots[0].connect_to_network_node(test_bots[1])
         self.wait_for_idle_network()

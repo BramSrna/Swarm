@@ -123,7 +123,6 @@ class PropagationStrategyComparer(NetworkNodeIdleListenerInterface):
             new_node = NetworkNode(additional_config_dict={"propagation_strategy": self.propagation_strategy})
             self.network_nodes.append(new_node)
             new_node.add_idle_listener(self)
-            new_node.startup()
 
         for i in range(len(self.network_nodes)):
             connected = [i]

@@ -10,9 +10,6 @@ class TestNetworkMessaging(NetworkNodeTestClass):
         test_network_node_1 = self.create_network_node(NetworkNode)
         test_network_node_2 = self.create_network_node(NetworkNode)
 
-        test_network_node_1.startup()
-        test_network_node_2.startup()
-
         test_network_node_1.connect_to_network_node(test_network_node_2)
 
         self.wait_for_idle_network()
@@ -29,15 +26,12 @@ class TestNetworkMessaging(NetworkNodeTestClass):
         test_network_node_1 = self.create_network_node(NetworkNode)
         test_network_node_2 = self.create_network_node(NetworkNode)
 
-        test_network_node_1.startup()
-        test_network_node_2.startup()
-
         test_network_node_1.connect_to_network_node(test_network_node_2)
 
         self.wait_for_idle_network()
 
         test_network_node_1.teardown()
-        test_network_node_1.startup()
+        test_network_node_1.start_network_node()
 
         test_network_node_1.send_directed_message(test_network_node_2.get_id(), "TEST", {})
 
@@ -49,9 +43,6 @@ class TestNetworkMessaging(NetworkNodeTestClass):
     def test_cannot_send_a_message_to_a_node_after_disconnecting_from_it(self):
         test_network_node_1 = self.create_network_node(NetworkNode)
         test_network_node_2 = self.create_network_node(NetworkNode)
-
-        test_network_node_1.startup()
-        test_network_node_2.startup()
 
         test_network_node_1.connect_to_network_node(test_network_node_2)
 

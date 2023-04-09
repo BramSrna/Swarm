@@ -34,9 +34,9 @@ class NetworkManager(NetworkNodeIdleListenerInterface):
 
         self.network_nodes = {}
 
-    def startup(self):
+    def start_network_manager(self):
         """
-        startup
+        start_network_manager
 
         Starts up each node in the network controlled by the manager.
 
@@ -45,7 +45,7 @@ class NetworkManager(NetworkNodeIdleListenerInterface):
         @return None
         """
         for _, node in self.network_nodes.items():
-            node.startup()
+            node.start_network_node()
 
     def teardown(self) -> None:
         """

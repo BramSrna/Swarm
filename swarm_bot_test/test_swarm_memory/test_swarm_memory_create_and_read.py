@@ -11,8 +11,6 @@ class TestSwarmMemoryCreateAndRead(NetworkNodeTestClass):
     def test_can_read_swarm_memory_when_info_stored_on_local_swarm_bot(self):
         test_swarm_bot_1 = self.create_network_node(SwarmBot)
 
-        test_swarm_bot_1.startup()
-
         test_path = "str"
         test_mem_val = "TEST_VAL"
 
@@ -23,9 +21,6 @@ class TestSwarmMemoryCreateAndRead(NetworkNodeTestClass):
     def test_can_read_swarm_memory_when_info_stored_on_directly_connected_swarm_bot(self):
         test_swarm_bot_1 = self.create_network_node(SwarmBot)
         test_swarm_bot_2 = self.create_network_node(SwarmBot)
-
-        test_swarm_bot_1.startup()
-        test_swarm_bot_2.startup()
 
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_2)
         self.wait_for_idle_network()
@@ -42,10 +37,6 @@ class TestSwarmMemoryCreateAndRead(NetworkNodeTestClass):
         test_swarm_bot_1 = self.create_network_node(SwarmBot)
         test_swarm_bot_2 = self.create_network_node(SwarmBot)
         test_swarm_bot_3 = self.create_network_node(SwarmBot)
-
-        test_swarm_bot_1.startup()
-        test_swarm_bot_2.startup()
-        test_swarm_bot_3.startup()
 
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_2)
         test_swarm_bot_2.connect_to_network_node(test_swarm_bot_3)
@@ -64,10 +55,6 @@ class TestSwarmMemoryCreateAndRead(NetworkNodeTestClass):
         test_swarm_bot_2 = self.create_network_node(SwarmBot)
         test_swarm_bot_3 = self.create_network_node(SwarmBot)
 
-        test_swarm_bot_1.startup()
-        test_swarm_bot_2.startup()
-        test_swarm_bot_3.startup()
-
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_2)
         test_swarm_bot_2.connect_to_network_node(test_swarm_bot_3)
         self.wait_for_idle_network()
@@ -85,10 +72,6 @@ class TestSwarmMemoryCreateAndRead(NetworkNodeTestClass):
         test_swarm_bot_1 = self.create_network_node(SwarmBot)
         test_swarm_bot_2 = self.create_network_node(SwarmBot)
         test_swarm_bot_3 = self.create_network_node(SwarmBot)
-
-        test_swarm_bot_1.startup()
-        test_swarm_bot_2.startup()
-        test_swarm_bot_3.startup()
 
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_2)
         test_swarm_bot_2.connect_to_network_node(test_swarm_bot_3)
@@ -112,10 +95,6 @@ class TestSwarmMemoryCreateAndRead(NetworkNodeTestClass):
         test_swarm_bot_1 = self.create_network_node(SwarmBot)
         test_swarm_bot_2 = self.create_network_node(SwarmBot)
         test_swarm_bot_3 = self.create_network_node(SwarmBot)
-
-        test_swarm_bot_1.startup()
-        test_swarm_bot_2.startup()
-        test_swarm_bot_3.startup()
 
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_2)
         test_swarm_bot_2.connect_to_network_node(test_swarm_bot_3)
@@ -142,9 +121,6 @@ class TestSwarmMemoryCreateAndRead(NetworkNodeTestClass):
     def test_swarm_bot_will_send_data_to_other_bots_when_local_swarm_memory_is_full(self):
         test_swarm_bot_1 = self.create_network_node(SwarmBot)
         test_swarm_bot_2 = self.create_network_node(SwarmBot)
-
-        test_swarm_bot_1.startup()
-        test_swarm_bot_2.startup()
 
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_2)
         self.wait_for_idle_network()
