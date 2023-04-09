@@ -52,7 +52,6 @@ class SwarmBot(NetworkNode):
             str(MessageTypes.SWARM_MEMORY_OBJECT_LOCATION),
             self.handle_swarm_memory_object_location_message
         )
-        self.assign_msg_handler(str(MessageTypes.REQUEST_SWARM_MEMORY_READ), self.handle_request_swarm_memory_read_message)
         self.assign_msg_handler(str(MessageTypes.EXECUTION_GROUP_CREATION), self.handle_execution_group_creation_message)
         self.assign_msg_handler(
             str(MessageTypes.REQUEST_JOIN_EXECUTION_GROUP),
@@ -60,7 +59,6 @@ class SwarmBot(NetworkNode):
         )
         self.assign_msg_handler(str(MessageTypes.START_TASK_EXECUTION), self.handle_start_task_execution_message)
         self.assign_msg_handler(str(MessageTypes.EXECUTION_GROUP_TEARDOWN), self.handle_execution_group_teardown_message)
-        self.assign_msg_handler(str(MessageTypes.DELETE_FROM_SWARM_MEMORY), self.handle_delete_from_swarm_memory_message)
         self.assign_msg_handler(str(MessageTypes.TASK_OUTPUT), self.handle_task_output_message)
         self.assign_msg_handler(str(MessageTypes.EXECUTION_GROUP_DELETION), self.handle_execution_group_deletion_message)
         self.assign_msg_handler(str(MessageTypes.NEW_SWARM_BOT_ID), self.handle_new_swarm_bot_id_message)
@@ -69,17 +67,7 @@ class SwarmBot(NetworkNode):
         self.assign_msg_handler(str(MessageTypes.BOT_TEARDOWN), self.handle_bot_teardown_message)
         self.assign_msg_handler(str(MessageTypes.REQUEST_PATH_TO_BOT), self.handle_request_path_to_bot)
         self.assign_msg_handler(str(MessageTypes.MSG_RESPONSE), self.handle_msg_response_message)
-        self.assign_msg_handler(str(MessageTypes.UPDATE_SWARM_MEMORY_VALUE), self.handle_update_swarm_memory_value_message)
         self.assign_msg_handler(str(MessageTypes.SYNC_SWARM_MEMORY), self.handle_sync_swarm_memory_message)
-        self.assign_msg_handler(
-            str(MessageTypes.TRANSFER_SWARM_MEMORY_CONTENTS),
-            self.handle_transfer_swarm_memory_contents_message
-        )
-        self.assign_msg_handler(str(MessageTypes.REQUEST_NEW_HOLDER), self.handle_request_new_holder_message)
-        self.assign_msg_handler(
-            str(MessageTypes.REMOVE_SWARM_MEMORY_OBJECT_LOCATION),
-            self.handle_remove_swarm_memory_object_location_message
-        )
 
     def startup(self):
         NetworkNode.startup(self)
@@ -297,15 +285,8 @@ class SwarmBot(NetworkNode):
     def handle_swarm_memory_object_location_message(self, message):
         msg_payload = message.get_message_payload()
         path = msg_payload["PATH"]
-        self.swarm_memory_interface.handle_swarm_memory_object_location_message(message)
         if "TASK_QUEUE" in path:
             self.task_queue_has_values.set()
-
-    def handle_request_swarm_memory_read_message(self, message):
-        self.swarm_memory_interface.handle_request_swarm_memory_read_message(message)
-
-    def handle_delete_from_swarm_memory_message(self, message):
-        self.swarm_memory_interface.handle_delete_from_swarm_memory_message(message)
 
     def handle_execution_group_creation_message(self, message):
         msg_payload = message.get_message_payload()
@@ -414,8 +395,6 @@ class SwarmBot(NetworkNode):
 
         self.torndown_bots.append(bot_to_remove)
 
-        self.swarm_memory_interface.handle_bot_teardown(bot_to_remove)
-
         if bot_to_remove in self.msg_intermediaries:
             self.msg_intermediaries.pop(bot_to_remove)
 
@@ -451,9 +430,6 @@ class SwarmBot(NetworkNode):
         with self.response_locks[original_message_id]["LOCK"]:
             self.response_locks[original_message_id]["LOCK"].notify_all()
 
-    def handle_update_swarm_memory_value_message(self, message):
-        self.swarm_memory_interface.handle_update_swarm_memory_value_message(message)
-
     def handle_sync_swarm_memory_message(self, message):
         message_payload = message.get_message_payload()
         swarm_memory_ref = message_payload["SWARM_MEMORY_REF"]
@@ -484,20 +460,11 @@ class SwarmBot(NetworkNode):
                 items.append((new_key, value))
         return dict(items)
 
-    def handle_transfer_swarm_memory_contents_message(self, message):
-        self.swarm_memory_interface.handle_transfer_swarm_memory_contents_message(message)
-
     def get_swarm_memory_usage_stats(self):
         return self.swarm_memory_interface.get_swarm_memory_usage_stats()
 
     def get_local_swarm_memory_contents(self):
         return self.swarm_memory_interface.get_local_contents()
-
-    def handle_request_new_holder_message(self, message):
-        self.swarm_memory_interface.handle_request_new_holder_message(message)
-
-    def handle_remove_swarm_memory_object_location_message(self, message):
-        self.swarm_memory_interface.handle_remove_swarm_memory_object_location_message(message)
 
     def task_executor_loop(self):
         while (not self.run_node.is_set()) and (not self.run_task_executor.is_set()):

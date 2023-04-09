@@ -31,3 +31,6 @@ class ExecutorInterface(object):
 
     def get_id_with_shortest_path_from_list(self, list_of_ids):
         return self.swarm_bot.get_id_with_shortest_path_from_list(list_of_ids)
+    
+    def assign_msg_handler(self, msg_type: str, handler: object):
+        return self.swarm_bot.assign_msg_handler(msg_type, handler)
