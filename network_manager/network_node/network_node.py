@@ -110,9 +110,11 @@ class NetworkNode(MessageChannelUser):
         self.message_channel_type = message_channels[self.config["message_channel"]]
         self.message_wrapper_type = message_wrappers[self.config["message_wrapper"]]
 
-    def startup(self) -> None:
+        self.start_network_node()
+
+    def start_network_node(self) -> None:
         """
-        startup
+        start_network_node
 
         Starts the threads needed by the node to perform its core function.
         The threads created are:

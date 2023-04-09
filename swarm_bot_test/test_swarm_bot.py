@@ -29,8 +29,6 @@ class TestSwarmBot(NetworkNodeTestClass):
     def test_swarm_bot_will_execute_task_when_not_already_executing_a_task(self):
         test_swarm_bot = self.create_network_node(SwarmBot)
 
-        test_swarm_bot.startup()
-
         test_task_bundle = SwarmTaskBundle()
         test_task_bundle.add_task(SimpleTask, 1)
 
@@ -45,8 +43,6 @@ class TestSwarmBot(NetworkNodeTestClass):
 
     def test_swarm_bot_will_pick_up_next_task_in_queue_when_done_executing_current_task(self):
         test_swarm_bot = self.create_network_node(SwarmBot)
-
-        test_swarm_bot.startup()
 
         test_task_bundle_1 = SwarmTaskBundle()
         test_task_bundle_1.add_task(SimpleTask, 1)

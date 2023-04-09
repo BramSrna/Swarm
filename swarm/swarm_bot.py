@@ -69,8 +69,9 @@ class SwarmBot(NetworkNode):
         self.assign_msg_handler(str(MessageTypes.MSG_RESPONSE), self.handle_msg_response_message)
         self.assign_msg_handler(str(MessageTypes.SYNC_SWARM_MEMORY), self.handle_sync_swarm_memory_message)
 
-    def startup(self):
-        NetworkNode.startup(self)
+        self.start_swarm_bot()
+
+    def start_swarm_bot(self):
         self.start_task_executor()
 
     def teardown(self):

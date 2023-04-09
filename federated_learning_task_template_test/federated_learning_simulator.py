@@ -13,7 +13,6 @@ if __name__ == "__main__":
 
     for _ in range(num_client_bots + num_node_bots + num_aggregator_bots):
         new_bot = SwarmBot()
-        SwarmBot.startup()
         manager.add_network_node(new_bot)
 
     for _ in range(num_client_bots):

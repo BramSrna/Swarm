@@ -28,17 +28,11 @@ class TestNetworkManager(NetworkNodeTestClass):
         test_network_node_2 = self.create_network_node(NetworkNode)
         test_network_node_3 = self.create_network_node(NetworkNode)
 
-        test_network_node_1.startup()
-        test_network_node_2.startup()
-        test_network_node_3.startup()
-
         test_network_manager.add_network_node(test_network_node_1)
         test_network_manager.add_network_node(test_network_node_2)
         test_network_manager.add_network_node(test_network_node_3)
 
         new_network_node = self.create_network_node(NetworkNode)
-
-        new_network_node.startup()
 
         test_network_manager.add_network_node(new_network_node)
 
@@ -59,17 +53,11 @@ class TestNetworkManager(NetworkNodeTestClass):
         test_network_node_2 = self.create_network_node(NetworkNode)
         test_network_node_3 = self.create_network_node(NetworkNode)
 
-        test_network_node_1.startup()
-        test_network_node_2.startup()
-        test_network_node_3.startup()
-
         test_network_manager.add_network_node(test_network_node_1)
         test_network_manager.add_network_node(test_network_node_2)
         test_network_manager.add_network_node(test_network_node_3)
 
         new_network_node = self.create_network_node(NetworkNode)
-
-        new_network_node.startup()
 
         test_network_manager.add_network_node(new_network_node)
 
@@ -90,17 +78,11 @@ class TestNetworkManager(NetworkNodeTestClass):
         test_network_node_2 = self.create_network_node(NetworkNode)
         test_network_node_3 = self.create_network_node(NetworkNode)
 
-        test_network_node_1.startup()
-        test_network_node_2.startup()
-        test_network_node_3.startup()
-
         test_network_manager.add_network_node(test_network_node_1)
         test_network_manager.add_network_node(test_network_node_2)
         test_network_manager.add_network_node(test_network_node_3)
 
         new_network_node = self.create_network_node(NetworkNode)
-
-        new_network_node.startup()
 
         test_network_manager.add_network_node(new_network_node)
 
@@ -120,17 +102,11 @@ class TestNetworkManager(NetworkNodeTestClass):
         test_network_node_2 = self.create_network_node(NetworkNode)
         test_network_node_3 = self.create_network_node(NetworkNode)
 
-        test_network_node_1.startup()
-        test_network_node_2.startup()
-        test_network_node_3.startup()
-
         test_network_manager.add_network_node(test_network_node_1)
         test_network_manager.add_network_node(test_network_node_2)
         test_network_manager.add_network_node(test_network_node_3)
 
         new_network_node = self.create_network_node(NetworkNode)
-
-        new_network_node.startup()
 
         test_network_manager.add_network_node(new_network_node)
 
@@ -163,17 +139,11 @@ class TestNetworkManager(NetworkNodeTestClass):
         test_network_node_2 = self.create_network_node(NetworkNode)
         test_network_node_3 = self.create_network_node(NetworkNode)
 
-        test_network_node_1.startup()
-        test_network_node_2.startup()
-        test_network_node_3.startup()
-
         test_network_manager.add_network_node(test_network_node_1)
         test_network_manager.add_network_node(test_network_node_2)
         test_network_manager.add_network_node(test_network_node_3)
 
         new_network_node = self.create_network_node(NetworkNode)
-
-        new_network_node.startup()
 
         test_network_manager.add_network_node(new_network_node)
 

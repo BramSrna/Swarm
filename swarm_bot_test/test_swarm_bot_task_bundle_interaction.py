@@ -36,10 +36,6 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
         test_swarm_bot_2 = self.create_network_node(SwarmBot)
         test_swarm_bot_3 = self.create_network_node(SwarmBot)
 
-        test_swarm_bot_1.startup()
-        test_swarm_bot_2.startup()
-        test_swarm_bot_3.startup()
-
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_2)
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_3)
 
@@ -55,7 +51,6 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
     @pytest.mark.skip(reason="Will be executable once https://github.com/users/BramSrna/projects/5 is finished.")
     def test_can_disable_task_execution(self):
         test_swarm_bot_1 = self.create_network_node(SwarmBot)
-        test_swarm_bot_1.startup()
 
         test_task_bundle = SwarmTaskBundle()
         test_task_bundle.add_task(SimpleTask, 1)
@@ -72,7 +67,6 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
     @pytest.mark.skip(reason="Will be executable once https://github.com/users/BramSrna/projects/5 is finished.")
     def test_can_disable_and_reenable_task_execution(self):
         test_swarm_bot_1 = self.create_network_node(SwarmBot)
-        test_swarm_bot_1.startup()
 
         test_task_bundle = SwarmTaskBundle()
         test_task_bundle.add_task(SimpleTask, 1)
@@ -97,10 +91,6 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
         test_swarm_bot_1 = self.create_network_node(SwarmBot)
         test_swarm_bot_2 = self.create_network_node(SwarmBot)
         test_swarm_bot_3 = self.create_network_node(SwarmBot)
-
-        test_swarm_bot_1.startup()
-        test_swarm_bot_2.startup()
-        test_swarm_bot_3.startup()
 
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_2)
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_3)
@@ -129,10 +119,6 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
         test_swarm_bot_1 = self.create_network_node(SwarmBot)
         test_swarm_bot_2 = self.create_network_node(SwarmBot)
         test_swarm_bot_3 = self.create_network_node(SwarmBot)
-
-        test_swarm_bot_1.startup()
-        test_swarm_bot_2.startup()
-        test_swarm_bot_3.startup()
 
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_2)
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_3)
@@ -170,10 +156,6 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
         test_swarm_bot_2 = self.create_network_node(SwarmBot)
         test_swarm_bot_3 = self.create_network_node(SwarmBot)
 
-        test_swarm_bot_1.startup()
-        test_swarm_bot_2.startup()
-        test_swarm_bot_3.startup()
-
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_2)
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_3)
 
@@ -196,10 +178,6 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
         test_swarm_bot_1 = self.create_network_node(SwarmBot)
         test_swarm_bot_2 = self.create_network_node(SwarmBot)
         test_swarm_bot_3 = self.create_network_node(SwarmBot)
-
-        test_swarm_bot_1.startup()
-        test_swarm_bot_2.startup()
-        test_swarm_bot_3.startup()
 
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_2)
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_3)
@@ -233,12 +211,10 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
     @pytest.mark.skip(reason="Will be executable once https://github.com/users/BramSrna/projects/5 is finished.")
     def test_can_get_output_of_task_from_single_bot(self):
         listener_bot = self.create_network_node(SwarmBot)
-        listener_bot.startup()
 
         listener_bot.set_task_executor_status(False)
 
         test_swarm_bot_1 = self.create_network_node(SwarmBot)
-        test_swarm_bot_1.startup()
 
         test_swarm_bot_1.connect_to_network_node(listener_bot)
 
@@ -266,17 +242,12 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
     @pytest.mark.skip(reason="Will be executable once https://github.com/users/BramSrna/projects/5 is finished.")
     def test_can_get_output_of_task_from_bot_for_task_that_requires_multiple_bots(self):
         listener_bot = self.create_network_node(SwarmBot)
-        listener_bot.startup()
 
         listener_bot.set_task_executor_status(False)
 
         test_swarm_bot_1 = self.create_network_node(SwarmBot)
         test_swarm_bot_2 = self.create_network_node(SwarmBot)
         test_swarm_bot_3 = self.create_network_node(SwarmBot)
-
-        test_swarm_bot_1.startup()
-        test_swarm_bot_2.startup()
-        test_swarm_bot_3.startup()
 
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_2)
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_3)
@@ -315,13 +286,11 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
 
         while len(swarm_bots) < num_bots:
             new_bot = self.create_network_node(SwarmBot)
-            new_bot.startup()
             for bot in swarm_bots:
                 new_bot.connect_to_network_node(bot)
             swarm_bots.append(new_bot)
 
         listener_bot = self.create_network_node(SwarmBot)
-        listener_bot.startup()
         listener_bot.set_task_executor_status(False)
         for bot in swarm_bots:
             listener_bot.connect_to_network_node(bot)
@@ -360,13 +329,11 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
 
         while len(swarm_bots) < num_bots:
             new_bot = self.create_network_node(SwarmBot)
-            new_bot.startup()
             for bot in swarm_bots:
                 new_bot.connect_to_network_node(bot)
             swarm_bots.append(new_bot)
 
         listener_bot = self.create_network_node(SwarmBot)
-        listener_bot.startup()
         listener_bot.set_task_executor_status(False)
         for bot in swarm_bots:
             listener_bot.connect_to_network_node(bot)

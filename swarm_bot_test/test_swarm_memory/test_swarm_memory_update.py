@@ -9,8 +9,6 @@ class TestSwarmMemoryUpdate(NetworkNodeTestClass):
     def test_can_update_swarm_memory_objects_when_info_stored_on_local_swarm_bot(self):
         test_swarm_bot_1 = self.create_network_node(SwarmBot)
 
-        test_swarm_bot_1.startup()
-
         test_mem_id = "TEST_ID"
         original_val = "TEST_VAL_1"
 
@@ -27,9 +25,6 @@ class TestSwarmMemoryUpdate(NetworkNodeTestClass):
     def test_can_update_swarm_memory_objects_when_info_stored_on_directly_connected_swarm_bot(self):
         test_swarm_bot_1 = self.create_network_node(SwarmBot)
         test_swarm_bot_2 = self.create_network_node(SwarmBot)
-
-        test_swarm_bot_1.startup()
-        test_swarm_bot_2.startup()
 
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_2)
         self.wait_for_idle_network()
@@ -54,10 +49,6 @@ class TestSwarmMemoryUpdate(NetworkNodeTestClass):
         test_swarm_bot_1 = self.create_network_node(SwarmBot)
         test_swarm_bot_2 = self.create_network_node(SwarmBot)
         test_swarm_bot_3 = self.create_network_node(SwarmBot)
-
-        test_swarm_bot_1.startup()
-        test_swarm_bot_2.startup()
-        test_swarm_bot_3.startup()
 
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_2)
         test_swarm_bot_2.connect_to_network_node(test_swarm_bot_3)

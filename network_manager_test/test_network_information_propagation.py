@@ -21,10 +21,6 @@ class TestNetworkInformationPropagation(NetworkNodeTestClass):
             additional_config_dict={"propagation_strategy": "NaivePropagation"}
         )
 
-        test_network_node_1.startup()
-        test_network_node_2.startup()
-        test_network_node_3.startup()
-
         test_network_node_1.connect_to_network_node(test_network_node_2)
         test_network_node_1.connect_to_network_node(test_network_node_3)
 
@@ -66,14 +62,6 @@ class TestNetworkInformationPropagation(NetworkNodeTestClass):
             NetworkNode,
             additional_config_dict={"propagation_strategy": "NaivePropagation"}
         )
-
-        test_network_node_1.startup()
-        test_network_node_2.startup()
-        test_network_node_3.startup()
-        test_network_node_4.startup()
-        test_network_node_5.startup()
-        test_network_node_6.startup()
-        test_network_node_7.startup()
 
         test_network_node_1.connect_to_network_node(test_network_node_2)
         test_network_node_1.connect_to_network_node(test_network_node_3)
@@ -120,12 +108,6 @@ class TestNetworkInformationPropagation(NetworkNodeTestClass):
             NetworkNode,
             additional_config_dict={"propagation_strategy": "NaivePropagation"}
         )
-
-        test_network_node_1.startup()
-        test_network_node_2.startup()
-        test_network_node_3.startup()
-        test_network_node_4.startup()
-        test_network_node_5.startup()
 
         test_network_node_1.connect_to_network_node(test_network_node_2)
         test_network_node_2.connect_to_network_node(test_network_node_3)

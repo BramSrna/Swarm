@@ -35,7 +35,6 @@ class TestFederatedLearning(NetworkNodeTestClass):
 
         for _ in range(num_client_bots + num_node_bots + num_aggregator_bots + num_coordinator_bots):
             new_bot = self.create_network_node(SwarmBot)
-            new_bot.startup()
             manager.add_network_node(new_bot)
 
         task_output = manager.receive_task_bundle(get_federated_learning_task_bundle())

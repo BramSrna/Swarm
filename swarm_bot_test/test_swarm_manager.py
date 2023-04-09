@@ -44,7 +44,6 @@ class TestSwarmManager(NetworkNodeTestClass):
         test_swarm_manager = self.create_swarm_manager(NetworkConnectivityLevel.FULLY_CONNECTED)
 
         test_swarm_bot = SwarmBot()
-        test_swarm_bot.startup()
 
         test_swarm_manager.add_network_node(test_swarm_bot)
 
@@ -75,11 +74,8 @@ class TestSwarmManager(NetworkNodeTestClass):
         test_swarm_manager.receive_task(test_task_bundle)
 
         test_swarm_bot_1 = SwarmBot()
-        test_swarm_bot_1.startup()
         test_swarm_bot_2 = SwarmBot()
-        test_swarm_bot_2.startup()
         test_swarm_bot_3 = SwarmBot()
-        test_swarm_bot_3.startup()
 
         test_swarm_manager.add_network_node(test_swarm_bot_1)
         test_swarm_manager.add_network_node(test_swarm_bot_2)
