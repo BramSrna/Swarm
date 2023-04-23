@@ -35,8 +35,6 @@ class TestSwarmBotTaskInbox(NetworkNodeTestClass):
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_3)
         test_swarm_bot_2.connect_to_network_node(test_swarm_bot_3)
 
-        self.wait_for_idle_network()
-
         test_swarm_bot_1.set_task_executor_status(False)
         test_swarm_bot_2.set_task_executor_status(False)
         test_swarm_bot_3.set_task_executor_status(False)
@@ -45,9 +43,8 @@ class TestSwarmBotTaskInbox(NetworkNodeTestClass):
         test_task_bundle.add_task(SimpleTask, 1)
 
         check_val = test_swarm_bot_1.receive_task_bundle(test_task_bundle)
-        self.assertTrue(check_val)
 
-        self.wait_for_idle_network()
+        self.assertTrue(check_val)
 
         task = test_task_bundle.get_tasks()[0]
 
@@ -64,8 +61,6 @@ class TestSwarmBotTaskInbox(NetworkNodeTestClass):
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_3)
         test_swarm_bot_2.connect_to_network_node(test_swarm_bot_3)
 
-        self.wait_for_idle_network()
-
         test_swarm_bot_1.set_task_executor_status(False)
         test_swarm_bot_2.set_task_executor_status(False)
         test_swarm_bot_3.set_task_executor_status(False)
@@ -74,9 +69,8 @@ class TestSwarmBotTaskInbox(NetworkNodeTestClass):
         test_task_bundle.add_task(SimpleTask, 1)
 
         check_val = test_swarm_bot_1.receive_task_bundle(test_task_bundle)
-        self.assertTrue(check_val)
 
-        self.wait_for_idle_network()
+        self.assertTrue(check_val)
 
         task = test_task_bundle.get_tasks()[0]
 

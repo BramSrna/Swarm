@@ -27,21 +27,20 @@ class TestSwarmMemoryUpdate(NetworkNodeTestClass):
         test_swarm_bot_2 = self.create_network_node(SwarmBot)
 
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_2)
-        self.wait_for_idle_network()
 
         test_mem_id = "TEST_ID"
         original_val = "TEST_VAL_1"
 
         test_swarm_bot_1.create_swarm_memory_entry(test_mem_id, original_val)
-        self.wait_for_idle_network()
 
+        self.wait_for_idle_network()
         self.assertEqual(original_val, test_swarm_bot_2.read_from_swarm_memory(test_mem_id))
 
         new_val = "TEST_VAL_2"
 
         test_swarm_bot_2.update_swarm_memory(test_mem_id, new_val)
-        self.wait_for_idle_network()
 
+        self.wait_for_idle_network()
         self.assertEqual(new_val, test_swarm_bot_2.read_from_swarm_memory(test_mem_id))
         self.assertEqual(new_val, test_swarm_bot_1.read_from_swarm_memory(test_mem_id))
 
@@ -52,21 +51,20 @@ class TestSwarmMemoryUpdate(NetworkNodeTestClass):
 
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_2)
         test_swarm_bot_2.connect_to_network_node(test_swarm_bot_3)
-        self.wait_for_idle_network()
 
         test_mem_id = "TEST_ID"
         original_val = "TEST_VAL_1"
 
         test_swarm_bot_1.create_swarm_memory_entry(test_mem_id, original_val)
-        self.wait_for_idle_network()
 
+        self.wait_for_idle_network()
         self.assertEqual(original_val, test_swarm_bot_3.read_from_swarm_memory(test_mem_id))
 
         new_val = "TEST_VAL_2"
 
         test_swarm_bot_3.update_swarm_memory(test_mem_id, new_val)
-        self.wait_for_idle_network()
 
+        self.wait_for_idle_network()
         self.assertEqual(new_val, test_swarm_bot_3.read_from_swarm_memory(test_mem_id))
         self.assertEqual(new_val, test_swarm_bot_1.read_from_swarm_memory(test_mem_id))
         self.assertEqual(new_val, test_swarm_bot_2.read_from_swarm_memory(test_mem_id))

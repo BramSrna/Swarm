@@ -35,7 +35,8 @@ class NaivePropagation(PropagationStrategy):
 
         @return [list] The list of nodes to send the message to
         """
-        return self.network_node.get_message_channels().keys()
+        targets = self.network_node.get_message_channels().keys()
+        return targets
 
     def track_message_propagation(self, message: MessageWrapper) -> None:
         """

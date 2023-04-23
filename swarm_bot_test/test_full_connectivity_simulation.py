@@ -12,15 +12,11 @@ class TestFullConnectivitySimulation(NetworkNodeTestClass):
         test_swarm_bot_3 = self.create_network_node(SwarmBot)
 
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_2)
-
         test_swarm_bot_2.connect_to_network_node(test_swarm_bot_3)
-
-        self.wait_for_idle_network()
 
         msg_id = test_swarm_bot_1.send_directed_message(test_swarm_bot_2.get_id(), "TEST", {})
 
         self.wait_for_idle_network()
-
         self.assertTrue(test_swarm_bot_2.received_msg_with_id(msg_id))
 
     def test_swarm_bots_that_are_not_directly_connected_can_still_exchange_messages_short_distance(self):
@@ -29,6 +25,7 @@ class TestFullConnectivitySimulation(NetworkNodeTestClass):
         test_swarm_bot_3 = self.create_network_node(SwarmBot)
 
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_2)
+
         self.wait_for_idle_network()
 
         swarm_bot_1_intermediaries = test_swarm_bot_1.get_msg_intermediaries()
@@ -38,6 +35,7 @@ class TestFullConnectivitySimulation(NetworkNodeTestClass):
         self.assertEqual(swarm_bot_2_intermediaries[test_swarm_bot_1.get_id()]["INTERMEDIARY_ID"], test_swarm_bot_1.get_id())
 
         test_swarm_bot_2.connect_to_network_node(test_swarm_bot_3)
+
         self.wait_for_idle_network()
 
         swarm_bot_1_intermediaries = test_swarm_bot_1.get_msg_intermediaries()
@@ -66,7 +64,6 @@ class TestFullConnectivitySimulation(NetworkNodeTestClass):
             new_bot = self.create_network_node(SwarmBot)
             if len(test_bots) > 0:
                 new_bot.connect_to_network_node(test_bots[-1])
-                self.wait_for_idle_network()
             test_bots.append(new_bot)
 
         self.wait_for_idle_network()
@@ -90,7 +87,6 @@ class TestFullConnectivitySimulation(NetworkNodeTestClass):
             new_bot = self.create_network_node(SwarmBot)
             if len(test_bots) > 0:
                 new_bot.connect_to_network_node(test_bots[-1])
-                self.wait_for_idle_network()
             test_bots.append(new_bot)
 
         self.wait_for_idle_network()
@@ -118,18 +114,14 @@ class TestFullConnectivitySimulation(NetworkNodeTestClass):
         test_swarm_bot_5 = self.create_network_node(SwarmBot)
 
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_2)
-        self.wait_for_idle_network()
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_3)
-        self.wait_for_idle_network()
 
         test_swarm_bot_2.connect_to_network_node(test_swarm_bot_4)
-        self.wait_for_idle_network()
         test_swarm_bot_3.connect_to_network_node(test_swarm_bot_4)
-        self.wait_for_idle_network()
 
         test_swarm_bot_4.connect_to_network_node(test_swarm_bot_5)
-        self.wait_for_idle_network()
 
+        self.wait_for_idle_network()
         self.assertEqual(1, test_swarm_bot_1.get_num_jumps_to(test_swarm_bot_2.get_id()))
         self.assertEqual(1, test_swarm_bot_1.get_num_jumps_to(test_swarm_bot_3.get_id()))
         self.assertEqual(2, test_swarm_bot_1.get_num_jumps_to(test_swarm_bot_4.get_id()))
@@ -156,8 +148,8 @@ class TestFullConnectivitySimulation(NetworkNodeTestClass):
         self.assertEqual(1, test_swarm_bot_5.get_num_jumps_to(test_swarm_bot_4.get_id()))
 
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_4)
-        self.wait_for_idle_network()
 
+        self.wait_for_idle_network()
         self.assertEqual(1, test_swarm_bot_1.get_num_jumps_to(test_swarm_bot_2.get_id()))
         self.assertEqual(1, test_swarm_bot_1.get_num_jumps_to(test_swarm_bot_3.get_id()))
         self.assertEqual(1, test_swarm_bot_1.get_num_jumps_to(test_swarm_bot_4.get_id()))
@@ -192,13 +184,9 @@ class TestFullConnectivitySimulation(NetworkNodeTestClass):
         ]
 
         test_bots[0].connect_to_network_node(test_bots[1])
-        self.wait_for_idle_network()
         test_bots[0].connect_to_network_node(test_bots[2])
-        self.wait_for_idle_network()
         test_bots[1].connect_to_network_node(test_bots[3])
-        self.wait_for_idle_network()
         test_bots[2].connect_to_network_node(test_bots[3])
-        self.wait_for_idle_network()
 
         for origin_bot in test_bots:
             msg_ids = origin_bot.send_propagation_message("TEST", {})
@@ -211,8 +199,8 @@ class TestFullConnectivitySimulation(NetworkNodeTestClass):
 
         test_bots[1].teardown()
         test_bots.pop(1)
-        self.wait_for_idle_network()
 
+        self.wait_for_idle_network()
         self.assertEqual(3, len(test_bots))
 
         self.assertEqual(1, test_bots[0].get_num_jumps_to(test_bots[1].get_id()))
@@ -225,7 +213,6 @@ class TestFullConnectivitySimulation(NetworkNodeTestClass):
         self.assertEqual(1, test_bots[2].get_num_jumps_to(test_bots[1].get_id()))
 
         for origin_bot in test_bots:
-            print(origin_bot.get_id(), origin_bot.get_msg_intermediaries())
             msg_ids = origin_bot.send_propagation_message("TEST", {})
             self.wait_for_idle_network()
             for bot in test_bots:

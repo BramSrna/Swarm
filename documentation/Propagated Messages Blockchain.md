@@ -1,0 +1,14 @@
+# Propagated Messages Blockchain
+Due to the decentralized nature of the swarm, it is possible for multiple contradicting messages to be received at the same time. For example, with the swarm memory, it is possible to recieve a message that updates the stored value to X and one that updates it to Y. Depending on the order these messages are received, the final value will be different. As such, there needs to be a way to control the order in which messages are executed.
+
+## Blockchain
+One possible solution is to use something similar to the blockchain. There would be a global counter that would iterate with each propagation message created. Each message would include the current counter value, so when a bot receives a message, it can check if that is the next logical message or if it needs to wait for more blocks. The largest difficulty with this is keeping the counter up to date accross the network. It would have similar issues to the messsage propagation in that the counter could go out of sync. 
+
+### State based counter
+Instead of a counter, the bots include the state they were in when the message was sent. Bots use that state to do determine where the message should be in the chain. From reading the chain, the state of the swarm can be rebuilt as needed. Individual data structures built on the swarm can add collision handling methods. By default, the newest message will handle collisions.
+
+
+Swap local memory to hold a collection of SwarmSharedObject
+Update SwarmSharedObject to have send + receive capabilities to maintain the blockchain
+
+Create

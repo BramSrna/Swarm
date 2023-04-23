@@ -59,7 +59,7 @@ class PropagationStrategyComparer(NetworkNodeIdleListenerInterface):
         Initializes a new network, then generates traffic throughout
         the network, and returns the propagation statistics.
 
-        @param display_snapshot_info [bool] True if the propagation stats should be printed out. False otherwise
+        @param display_snapshot_info [bool] True if the propagation stats should be displayed in the terminal. False otherwise
 
         @return [dict] The propagation statistics
         """
@@ -138,6 +138,10 @@ class PropagationStrategyComparer(NetworkNodeIdleListenerInterface):
                 self.network_nodes[i].connect_to_network_node(self.network_nodes[rand_node_ind])
                 connected.append(rand_node_ind)
                 num_connections -= 1
+
+        # When comparing propagation strategies, we want to ensure the network is in
+        # a consistent state. As such, the network needs to be fully stable before
+        # driving traffic.
         self.wait_for_idle_network(60)
 
     def _run_traffic(self, num_messages: int) -> None:
@@ -150,16 +154,19 @@ class PropagationStrategyComparer(NetworkNodeIdleListenerInterface):
 
         @return None
         """
+        msg_ids = []
         node_ind = 0
         while num_messages > 0:
             node = self.network_nodes[node_ind]
             msg_id = node.send_propagation_message("TEST", {})
-            self.wait_for_idle_network(60)
-            for node in self.network_nodes:
-                assert(node.interacted_with_msg_with_id(msg_id))
+            msg_ids.append(msg_id)
             node_ind += 1
             node_ind %= len(self.network_nodes)
             num_messages -= 1
+        self.wait_for_idle_network(60)
+        for id in msg_ids:
+            for node in self.network_nodes:
+                assert(node.interacted_with_msg_with_id(id))
 
     def _get_state_snapshot(self) -> dict:
         """

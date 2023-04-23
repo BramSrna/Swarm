@@ -82,8 +82,6 @@ class TestSwarmManager(NetworkNodeTestClass):
 
         self.assertFalse(test_task_bundle.is_complete())
 
-        self.wait_for_idle_network()
-
         test_swarm_manager.add_network_node(test_swarm_bot_3)
 
         self.wait_for_idle_network()

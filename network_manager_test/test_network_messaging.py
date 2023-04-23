@@ -12,8 +12,6 @@ class TestNetworkMessaging(NetworkNodeTestClass):
 
         test_network_node_1.connect_to_network_node(test_network_node_2)
 
-        self.wait_for_idle_network()
-
         test_network_node_1.send_directed_message(test_network_node_2.get_id(), "TEST", {})
 
         self.wait_for_idle_network()
@@ -27,8 +25,6 @@ class TestNetworkMessaging(NetworkNodeTestClass):
         test_network_node_2 = self.create_network_node(NetworkNode)
 
         test_network_node_1.connect_to_network_node(test_network_node_2)
-
-        self.wait_for_idle_network()
 
         test_network_node_1.teardown()
         test_network_node_1.start_network_node()
@@ -46,8 +42,6 @@ class TestNetworkMessaging(NetworkNodeTestClass):
 
         test_network_node_1.connect_to_network_node(test_network_node_2)
 
-        self.wait_for_idle_network()
-
         test_network_node_1.send_directed_message(test_network_node_2.get_id(), "TEST", {})
 
         self.wait_for_idle_network()
@@ -61,7 +55,7 @@ class TestNetworkMessaging(NetworkNodeTestClass):
         with self.assertRaises(Exception) as raised_error:
             msg_id = test_network_node_1.send_directed_message(test_network_node_2.get_id(), "TEST", {})
 
-        self.assertIn("tried to create message for unknown node", str(raised_error.exception))
+        self.assertIn("Tried to send a message to an unknown nod", str(raised_error.exception))
 
 
 if __name__ == "__main__":

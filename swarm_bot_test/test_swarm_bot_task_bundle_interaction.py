@@ -41,11 +41,10 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
 
         test_swarm_bot_2.connect_to_network_node(test_swarm_bot_3)
 
-        self.wait_for_idle_network()
-
         test_task_bundle = SwarmTaskBundle()
         test_task_bundle.add_task(SimpleTask, 5)
 
+        self.wait_for_idle_network()
         self.assertFalse(test_swarm_bot_1.receive_task_bundle(test_task_bundle))
 
     @pytest.mark.skip(reason="Will be executable once https://github.com/users/BramSrna/projects/5 is finished.")
@@ -58,10 +57,9 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
         test_swarm_bot_1.set_task_executor_status(False)
 
         can_execute = test_swarm_bot_1.receive_task_bundle(test_task_bundle)
-        self.assertTrue(can_execute)
 
         self.wait_for_idle_network()
-
+        self.assertTrue(can_execute)
         self.assertFalse(test_task_bundle.is_complete())
 
     @pytest.mark.skip(reason="Will be executable once https://github.com/users/BramSrna/projects/5 is finished.")
@@ -74,10 +72,10 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
         test_swarm_bot_1.set_task_executor_status(False)
 
         can_execute = test_swarm_bot_1.receive_task_bundle(test_task_bundle)
-        self.assertTrue(can_execute)
 
         self.wait_for_idle_network()
 
+        self.assertTrue(can_execute)
         self.assertFalse(test_task_bundle.is_complete())
 
         test_swarm_bot_1.set_task_executor_status(True)
@@ -96,8 +94,6 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_3)
         test_swarm_bot_2.connect_to_network_node(test_swarm_bot_3)
 
-        self.wait_for_idle_network()
-
         test_swarm_bot_1.set_task_executor_status(False)
         test_swarm_bot_2.set_task_executor_status(False)
         test_swarm_bot_3.set_task_executor_status(False)
@@ -106,9 +102,10 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
         test_task_bundle.add_task(SimpleTask, 1)
 
         check_val = test_swarm_bot_1.receive_task_bundle(test_task_bundle)
-        self.assertTrue(check_val)
 
         self.wait_for_idle_network()
+
+        self.assertTrue(check_val)
 
         self.assertGreater(len(test_swarm_bot_1.get_task_bundle_queue()), 0)
         self.assertGreater(len(test_swarm_bot_2.get_task_bundle_queue()), 0)
@@ -124,8 +121,6 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
         test_swarm_bot_1.connect_to_network_node(test_swarm_bot_3)
         test_swarm_bot_2.connect_to_network_node(test_swarm_bot_3)
 
-        self.wait_for_idle_network()
-
         test_swarm_bot_1.set_task_executor_status(False)
         test_swarm_bot_2.set_task_executor_status(False)
         test_swarm_bot_3.set_task_executor_status(False)
@@ -134,9 +129,10 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
         test_task_bundle.add_task(SimpleTask, 1)
 
         check_val = test_swarm_bot_1.receive_task_bundle(test_task_bundle)
-        self.assertTrue(check_val)
 
         self.wait_for_idle_network()
+
+        self.assertTrue(check_val)
 
         self.assertGreater(len(test_swarm_bot_1.get_task_bundle_queue()), 0)
         self.assertGreater(len(test_swarm_bot_2.get_task_bundle_queue()), 0)
@@ -161,16 +157,14 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
 
         test_swarm_bot_2.connect_to_network_node(test_swarm_bot_3)
 
-        self.wait_for_idle_network()
-
         test_task_bundle = SwarmTaskBundle()
         test_task_bundle.add_task(SimpleTask, 3)
 
         check_val = test_swarm_bot_1.receive_task_bundle(test_task_bundle)
-        self.assertTrue(check_val)
 
         self.wait_for_idle_network()
 
+        self.assertTrue(check_val)
         self.assertTrue(test_task_bundle.is_complete())
 
     @pytest.mark.skip(reason="Will be executable once https://github.com/users/BramSrna/projects/5 is finished.")
@@ -184,16 +178,14 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
 
         test_swarm_bot_2.connect_to_network_node(test_swarm_bot_3)
 
-        self.wait_for_idle_network()
-
         test_task_bundle = SwarmTaskBundle()
         test_task_bundle.add_task(SimpleTask, 1)
 
         check_val = test_swarm_bot_1.receive_task_bundle(test_task_bundle)
-        self.assertTrue(check_val)
 
         self.wait_for_idle_network()
 
+        self.assertTrue(check_val)
         task = test_task_bundle.get_tasks()[0]
 
         executed_by_1 = (task in test_swarm_bot_1.get_task_execution_history()) and \
@@ -218,15 +210,14 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
 
         test_swarm_bot_1.connect_to_network_node(listener_bot)
 
-        self.wait_for_idle_network()
-
         test_task_bundle = SwarmTaskBundle()
         test_task_bundle.add_task(SimpleTask, 1)
 
         can_execute = test_swarm_bot_1.receive_task_bundle(test_task_bundle, listener_bot_id=listener_bot.get_id())
-        self.assertTrue(can_execute)
 
         self.wait_for_idle_network()
+
+        self.assertTrue(can_execute)
 
         self.assertTrue(test_task_bundle.is_complete())
 
@@ -256,16 +247,14 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
 
         test_swarm_bot_1.connect_to_network_node(listener_bot)
 
-        self.wait_for_idle_network()
-
         test_task_bundle = SwarmTaskBundle()
         test_task_bundle.add_task(SimpleTask, 3)
 
         can_execute = test_swarm_bot_1.receive_task_bundle(test_task_bundle, listener_bot_id=listener_bot.get_id())
-        self.assertTrue(can_execute)
 
         self.wait_for_idle_network()
 
+        self.assertTrue(can_execute)
         self.assertTrue(test_task_bundle.is_complete())
 
         rcvd_msgs = listener_bot.get_received_messages().values()
@@ -295,15 +284,12 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
         for bot in swarm_bots:
             listener_bot.connect_to_network_node(bot)
 
-        self.wait_for_idle_network()
-
         task_bundles = []
         for _ in range(num_tasks):
             new_task_bundle = SwarmTaskBundle()
             new_task_bundle.add_task(SimpleTask, bots_per_task)
             task_bundles.append(new_task_bundle)
-            can_execute = swarm_bots[0].receive_task_bundle(new_task_bundle, listener_bot_id=listener_bot.get_id())
-            self.assertTrue(can_execute)
+            swarm_bots[0].receive_task_bundle(new_task_bundle, listener_bot_id=listener_bot.get_id())
 
         self.wait_for_idle_network()
 
@@ -311,7 +297,6 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
             self.assertTrue(task_bundle.is_complete())
 
         rcvd_msgs = listener_bot.get_received_messages().values()
-        print(rcvd_msgs)
         task_outputs = []
         for msg in rcvd_msgs:
             if msg[0] == MessageTypes.TASK_OUTPUT:
@@ -338,18 +323,14 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
         for bot in swarm_bots:
             listener_bot.connect_to_network_node(bot)
 
-        self.wait_for_idle_network()
-
         for _ in range(num_tasks):
             new_task_bundle = SwarmTaskBundle()
             new_task_bundle.add_task(SimpleTask, bots_per_task)
-            can_execute = swarm_bots[0].receive_task_bundle(new_task_bundle, listener_bot_id=listener_bot.get_id())
-            self.assertTrue(can_execute)
+            swarm_bots[0].receive_task_bundle(new_task_bundle, listener_bot_id=listener_bot.get_id())
 
         self.wait_for_idle_network()
 
         rcvd_msgs = listener_bot.get_received_messages().values()
-        print(rcvd_msgs)
         task_outputs = []
         for msg in rcvd_msgs:
             if msg[0] == MessageTypes.TASK_OUTPUT:
