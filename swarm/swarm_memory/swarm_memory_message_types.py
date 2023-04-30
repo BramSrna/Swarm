@@ -1,0 +1,12 @@
+from enum import Enum
+
+
+class SwarmMemoryMessageTypes(Enum):
+    SYNC_SWARM_MEMORY = 1
+    REMOVE_HOLDER_ID = 2
+    NEW_HOLDER_ID = 3
+    DELETE_FROM_SWARM_MEMORY = 4
+    REQUEST_NEW_HOLDER = 5
+    NEW_CHANGE_BLOCK = 6
+    REQUEST_BLOCKCHAIN_TRANSFER = 7
+    REQUEST_READ = 8
