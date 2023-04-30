@@ -420,7 +420,8 @@ class SwarmBot(NetworkNode):
         sender_id = message.get_sender_id()
         for intermediary_id in intermediary_list:
             self.save_msg_intermediary(intermediary_id, sender_id, intermediary_list[intermediary_id]["NUM_JUMPS"])
-        for bot_id in self.msg_intermediaries:
+        bot_ids = self.msg_intermediaries
+        for bot_id in bot_ids:
             self.send_propagation_message(
                 MessageTypes.NEW_SWARM_BOT_ID,
                 {
