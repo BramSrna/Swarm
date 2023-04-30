@@ -98,13 +98,12 @@ class TestFullConnectivitySimulation(NetworkNodeTestClass):
                     self.assertIn(bot_2.get_id(), intermediaries)
 
         for origin_bot in test_bots:
-            msg_ids = origin_bot.send_propagation_message("TEST", {})
+            msg_id = origin_bot.send_propagation_message("TEST", {})
             self.wait_for_idle_network()
             for bot in test_bots:
                 if bot != origin_bot:
                     rcvd_msgs = list(bot.get_received_messages().keys())
-                    common_ids = list(set(msg_ids).intersection(rcvd_msgs))
-                    self.assertEqual(1, len(common_ids))
+                    self.assertIn(msg_id, rcvd_msgs)
 
     def test_shortest_message_intermediary_is_always_saved(self):
         test_swarm_bot_1 = self.create_network_node(SwarmBot)
@@ -189,13 +188,12 @@ class TestFullConnectivitySimulation(NetworkNodeTestClass):
         test_bots[2].connect_to_network_node(test_bots[3])
 
         for origin_bot in test_bots:
-            msg_ids = origin_bot.send_propagation_message("TEST", {})
+            msg_id = origin_bot.send_propagation_message("TEST", {})
             self.wait_for_idle_network()
             for bot in test_bots:
                 if bot != origin_bot:
                     rcvd_msgs = list(bot.get_received_messages().keys())
-                    common_ids = list(set(msg_ids).intersection(rcvd_msgs))
-                    self.assertEqual(1, len(common_ids))
+                    self.assertIn(msg_id, rcvd_msgs)
 
         test_bots[1].teardown()
         test_bots.pop(1)
@@ -213,13 +211,12 @@ class TestFullConnectivitySimulation(NetworkNodeTestClass):
         self.assertEqual(1, test_bots[2].get_num_jumps_to(test_bots[1].get_id()))
 
         for origin_bot in test_bots:
-            msg_ids = origin_bot.send_propagation_message("TEST", {})
+            msg_id = origin_bot.send_propagation_message("TEST", {})
             self.wait_for_idle_network()
             for bot in test_bots:
                 if bot != origin_bot:
                     rcvd_msgs = list(bot.get_received_messages().keys())
-                    common_ids = list(set(msg_ids).intersection(rcvd_msgs))
-                    self.assertEqual(1, len(common_ids))
+                    self.assertIn(msg_id, rcvd_msgs)
 
 
 if __name__ == "__main__":

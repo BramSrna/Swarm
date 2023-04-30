@@ -1,8 +1,6 @@
 import threading
 import os
-import copy
 import collections
-import random
 
 from network_manager.network_node.network_node import NetworkNode
 from swarm.executor_interface import ExecutorInterface
@@ -14,7 +12,11 @@ from network_manager.network_node.network_node_message_types import NetworkNodeM
 
 
 class SwarmBot(NetworkNode):
-    def __init__(self, additional_config_path: str = os.path.join(os.path.dirname(__file__), "./default_swarm_bot_config.yml"), additional_config_dict: dict = None):
+    def __init__(
+            self,
+            additional_config_path: str = os.path.join(os.path.dirname(__file__), "./default_swarm_bot_config.yml"),
+            additional_config_dict: dict = None
+            ):
         super().__init__(
             additional_config_path=additional_config_path,
             additional_config_dict=additional_config_dict
@@ -41,48 +43,81 @@ class SwarmBot(NetworkNode):
         self.swarm_memory_optimization_operation_threshold = self.config["swarm_memory_optimization_operation_threshold"]
         self.key_count_threshold = self.config["swarm_memory_key_count_threshold"]
 
+        self.assign_msg_handler(
+            str(NetworkNodeMessageTypes.REQUEST_CONNECTION),
+            self.swarm_bot_handle_request_connection_message
+        )
+        self.assign_msg_handler(
+            str(NetworkNodeMessageTypes.BOT_TEARDOWN),
+            self.swarm_bot_handle_bot_teardown_message
+        )
+
+        self.assign_msg_handler(
+            str(MessageTypes.EXECUTION_GROUP_CREATION),
+            self.swarm_bot_handle_execution_group_creation_message
+        )
+        self.assign_msg_handler(
+            str(MessageTypes.REQUEST_JOIN_EXECUTION_GROUP),
+            self.swarm_bot_handle_request_join_execution_group_message
+        )
+        self.assign_msg_handler(
+            str(MessageTypes.START_TASK_EXECUTION),
+            self.swarm_bot_handle_start_task_execution_message
+        )
+        self.assign_msg_handler(
+            str(MessageTypes.EXECUTION_GROUP_TEARDOWN),
+            self.swarm_bot_handle_execution_group_teardown_message
+        )
+        self.assign_msg_handler(
+            str(MessageTypes.TASK_OUTPUT),
+            self.swarm_bot_handle_task_output_message
+        )
+        self.assign_msg_handler(
+            str(MessageTypes.EXECUTION_GROUP_DELETION),
+            self.swarm_bot_handle_execution_group_deletion_message
+        )
+        self.assign_msg_handler(
+            str(MessageTypes.NEW_SWARM_BOT_ID),
+            self.swarm_bot_handle_new_swarm_bot_id_message
+        )
+        self.assign_msg_handler(
+            str(MessageTypes.FORWARD_MESSAGE),
+            self.swarm_bot_handle_forward_message_message
+        )
+        self.assign_msg_handler(
+            str(MessageTypes.SYNC_INTERMEDIARIES),
+            self.swarm_bot_handle_sync_intermediaries_message
+        )
+        self.assign_msg_handler(
+            str(MessageTypes.REQUEST_PATH_TO_BOT),
+            self.swarm_bot_handle_request_path_to_bot
+        )
+        self.assign_msg_handler(
+            str(MessageTypes.MSG_RESPONSE),
+            self.swarm_bot_handle_msg_response_message
+        )
+
         self.swarm_memory_interface = SwarmMemoryInterface(
             ExecutorInterface(self),
             self.swarm_memory_optimization_operation_threshold,
             self.key_count_threshold
         )
-
-        self.assign_msg_handler(str(NetworkNodeMessageTypes.REQUEST_CONNECTION), self.swarm_bot_handle_request_connection_message)
-        self.assign_msg_handler(str(NetworkNodeMessageTypes.BOT_TEARDOWN), self.swarm_bot_handle_bot_teardown_message)
-
-        self.assign_msg_handler(
-            str(MessageTypes.SWARM_MEMORY_OBJECT_LOCATION),
-            self.swarm_bot_handle_swarm_memory_object_location_message
-        )
-        self.assign_msg_handler(str(MessageTypes.EXECUTION_GROUP_CREATION), self.swarm_bot_handle_execution_group_creation_message)
-        self.assign_msg_handler(
-            str(MessageTypes.REQUEST_JOIN_EXECUTION_GROUP),
-            self.swarm_bot_handle_request_join_execution_group_message
-        )
-        self.assign_msg_handler(str(MessageTypes.START_TASK_EXECUTION), self.swarm_bot_handle_start_task_execution_message)
-        self.assign_msg_handler(str(MessageTypes.EXECUTION_GROUP_TEARDOWN), self.swarm_bot_handle_execution_group_teardown_message)
-        self.assign_msg_handler(str(MessageTypes.TASK_OUTPUT), self.swarm_bot_handle_task_output_message)
-        self.assign_msg_handler(str(MessageTypes.EXECUTION_GROUP_DELETION), self.swarm_bot_handle_execution_group_deletion_message)
-        self.assign_msg_handler(str(MessageTypes.NEW_SWARM_BOT_ID), self.swarm_bot_handle_new_swarm_bot_id_message)
-        self.assign_msg_handler(str(MessageTypes.FORWARD_MESSAGE), self.swarm_bot_handle_forward_message_message)
-        self.assign_msg_handler(str(MessageTypes.SYNC_INTERMEDIARIES), self.swarm_bot_handle_sync_intermediaries_message)
-        self.assign_msg_handler(str(MessageTypes.REQUEST_PATH_TO_BOT), self.swarm_bot_handle_request_path_to_bot)
-        self.assign_msg_handler(str(MessageTypes.MSG_RESPONSE), self.swarm_bot_handle_msg_response_message)
-        self.assign_msg_handler(str(MessageTypes.SYNC_SWARM_MEMORY), self.swarm_bot_handle_sync_swarm_memory_message)
+        self.swarm_memory_interface.add_path_watcher("TASK_QUEUE", self.task_queue_monitor)
 
         self.start_swarm_bot()
+
+    def get_known_bot_ids(self):
+        return list(self.msg_intermediaries.keys())
+
+    def get_local_swarm_memory_contents(self):
+        return self.swarm_memory_interface.get_local_swarm_memory_contents()
 
     def start_swarm_bot(self):
         self.start_task_executor()
 
     def teardown(self):
-        if len(self.msg_channels.keys()) > 0:
-            self.send_directed_message(
-                random.choice(list(self.msg_channels.keys())),
-                MessageTypes.TRANSFER_SWARM_MEMORY_CONTENTS,
-                {"SWARM_MEMORY_CONTENTS": self.swarm_memory_interface.get_local_contents()}
-            )
-            self.send_propagation_message(NetworkNodeMessageTypes.BOT_TEARDOWN, {"BOT_ID": self.get_id()})
+        self.swarm_memory_interface.teardown()
+        self.send_propagation_message(NetworkNodeMessageTypes.BOT_TEARDOWN, {"BOT_ID": self.get_id()})
         self.set_task_executor_status(False)
         self.set_message_inbox_status(False)
         self.set_message_outbox_status(False)
@@ -100,7 +135,7 @@ class SwarmBot(NetworkNode):
         tasks = new_task_bundle.get_tasks()
         for i in range(len(tasks)):
             curr_task = tasks[i]
-            self.create_swarm_memory_entry(
+            self.write_to_swarm_memory(
                 "TASK_QUEUE/" + str(curr_task.get_id()),
                 {
                     "TASK": curr_task,
@@ -113,17 +148,14 @@ class SwarmBot(NetworkNode):
             self.task_queue_has_values.set()
         return True
 
+    def write_to_swarm_memory(self, path_to_create, value):
+        return self.swarm_memory_interface.write(path_to_create, value)
+
     def read_from_swarm_memory(self, path_to_read):
-        return self.swarm_memory_interface.read_from_swarm_memory(path_to_read)
-
-    def create_swarm_memory_entry(self, path_to_create, value):
-        return self.swarm_memory_interface.create_swarm_memory_entry(path_to_create, value)
-
-    def update_swarm_memory(self, path_to_update, new_value):
-        return self.swarm_memory_interface.update_swarm_memory(path_to_update, new_value)
+        return self.swarm_memory_interface.read(path_to_read)
 
     def delete_from_swarm_memory(self, path_to_delete):
-        return self.swarm_memory_interface.delete_from_swarm_memory(path_to_delete)
+        return self.swarm_memory_interface.delete(path_to_delete)
 
     def get_task_execution_history(self):
         return self.task_execution_history
@@ -167,7 +199,12 @@ class SwarmBot(NetworkNode):
         self._notify_process_state(False)
 
     def receive_message(self, message):
-        target_bot_id = message.get_message_payload()["TARGET_BOT_ID"]
+        payload = message.get_message_payload()
+
+        target_bot_id = self.get_id()
+        if "TARGET_BOT_ID" in payload:
+            target_bot_id = message.get_message_payload()["TARGET_BOT_ID"]
+
         final_message = message
         if target_bot_id != self.get_id():
             if target_bot_id not in self.msg_intermediaries:
@@ -198,23 +235,30 @@ class SwarmBot(NetworkNode):
         return self.msg_intermediaries
 
     def send_propagation_message(self, message_type, message_payload):
-        msg_ids = []
-        for bot_id in list(self.msg_intermediaries.keys()):
-            curr_id = self.send_directed_message(bot_id, message_type, copy.deepcopy(message_payload))
-            msg_ids.append(curr_id)
-        return msg_ids
+        return NetworkNode.send_propagation_message(self, message_type, message_payload)
 
     def send_directed_message(self, target_bot_id, message_type, message_payload):
         message_payload["TARGET_BOT_ID"] = target_bot_id
         message_payload["ORIGINAL_SENDER_ID"] = self.get_id()
-        
+
         first_intermediary_id = None
-        if target_bot_id in self.msg_intermediaries:
-            first_intermediary_id = self.msg_intermediaries[target_bot_id]["INTERMEDIARY_ID"]
+        if target_bot_id == self.get_id():
+            raise Exception("ERROR: {} tried to send message to self: {}".format(
+                self.get_id(),
+                target_bot_id
+            ))
         elif target_bot_id in self.msg_channels:
             first_intermediary_id = target_bot_id
+        elif target_bot_id in self.msg_intermediaries:
+            first_intermediary_id = self.msg_intermediaries[target_bot_id]["INTERMEDIARY_ID"]
+        elif target_bot_id in self.torndown_nodes:
+            self.logger.warning("WARNING: {} tried to send message to torn down bot: {}".format(
+                self.get_id(),
+                target_bot_id
+            ))
+            return None
         else:
-            raise Exception("ERROR: {} tried to send message to bot with no known path: {}".format(
+            raise Exception("ERROR: {} tried to send message to unknown bot: {}".format(
                 self.get_id(),
                 target_bot_id
             ))
@@ -223,16 +267,24 @@ class SwarmBot(NetworkNode):
 
     def send_sync_directed_message(self, target_bot_id, message_type, message_payload):
         msg_id = self.send_directed_message(target_bot_id, message_type, message_payload)
+        if msg_id is None:
+            return None
 
         self.response_locks[msg_id] = {
             "LOCK": threading.Condition(),
-            "RESPONSE": None
+            "RESPONSE": None,
+            "TARGET_BOT_ID": target_bot_id
         }
+
         with self.response_locks[msg_id]["LOCK"]:
             check = self.response_locks[msg_id]["LOCK"].wait(timeout=10)
-            if not check:
-                raise Exception("ERROR: Did not receive message response within time limit. Message ID: {}".format(msg_id))
-        return self.response_locks[msg_id]["RESPONSE"]
+            if check:
+                return self.response_locks.pop(msg_id)["RESPONSE"]
+            else:
+                if target_bot_id in self.torndown_nodes:
+                    return None
+                else:
+                    raise Exception("ERROR: Did not receive message response within time limit. Message ID: {}".format(msg_id))
 
     def respond_to_message(self, message, message_payload):
         message_payload["ORIGINAL_MESSAGE_ID"] = message.get_id()
@@ -247,8 +299,10 @@ class SwarmBot(NetworkNode):
         if target_bot_id != potential_intermediary_id:
             num_jumps += 1
             while potential_intermediary_id not in self.msg_channels:
-                if potential_intermediary_id not in self.msg_intermediaries:
-                    raise Exception("ERROR: Could not find directly connected intermediary.")
+                if (potential_intermediary_id not in self.msg_intermediaries):
+                    if (target_bot_id not in self.msg_intermediaries):
+                        self.send_propagation_message(MessageTypes.REQUEST_PATH_TO_BOT, {"BOT_ID": target_bot_id})
+                    return False
                 potential_intermediary_id = self.msg_intermediaries[potential_intermediary_id]["INTERMEDIARY_ID"]
                 num_jumps += 1
 
@@ -281,11 +335,8 @@ class SwarmBot(NetworkNode):
 
         return id_with_shortest_path
 
-    def swarm_bot_handle_swarm_memory_object_location_message(self, message):
-        msg_payload = message.get_message_payload()
-        path = msg_payload["PATH"]
-        if "TASK_QUEUE" in path:
-            self.task_queue_has_values.set()
+    def task_queue_monitor(self):
+        self.task_queue_has_values.set()
 
     def swarm_bot_handle_execution_group_creation_message(self, message):
         msg_payload = message.get_message_payload()
@@ -331,7 +382,7 @@ class SwarmBot(NetworkNode):
         object_key = msg_payload["OBJECT_KEY"]
         object_value = msg_payload["OBJECT_VALUE"]
         table_id = msg_payload["TABLE_ID"]
-        self.create_swarm_memory_entry(table_id, object_key, object_value)
+        self.write_to_swarm_memory(table_id, object_key, object_value)
         if table_id == "TASK_QUEUE":
             self.task_queue_has_values.set()
 
@@ -362,11 +413,6 @@ class SwarmBot(NetworkNode):
             new_id,
             MessageTypes.SYNC_INTERMEDIARIES,
             {"INTERMEDIARY_LIST": self.msg_intermediaries}
-        )
-        self.send_directed_message(
-            new_id,
-            MessageTypes.SYNC_SWARM_MEMORY,
-            {"SWARM_MEMORY_REF": self.swarm_memory_interface.get_data_to_holder_id_map()}
         )
 
     def swarm_bot_handle_sync_intermediaries_message(self, message):
@@ -400,6 +446,12 @@ class SwarmBot(NetworkNode):
         for bot_id in needs_new_path:
             self.send_propagation_message(MessageTypes.REQUEST_PATH_TO_BOT, {"BOT_ID": bot_id})
 
+        for msg_id in self.response_locks:
+            if self.response_locks[msg_id]["TARGET_BOT_ID"] == bot_to_remove:
+                self.response_locks[msg_id]["RESPONSE"] = None
+                with self.response_locks[msg_id]["LOCK"]:
+                    self.response_locks[msg_id]["LOCK"].notify_all()
+
     def swarm_bot_handle_request_path_to_bot(self, message):
         bot_id = message.get_message_payload()["BOT_ID"]
         if bot_id in self.msg_channels:
@@ -413,32 +465,13 @@ class SwarmBot(NetworkNode):
         message_payload = message.get_message_payload()
         original_message_id = message_payload["ORIGINAL_MESSAGE_ID"]
         if original_message_id not in self.response_locks:
-            raise Exception("ERROR: Received message response for message that was never sent: {}".format(
+            self.logger.warning("ERROR: Received message response for message that was never sent: {}".format(
                 message.get_message_payload()
             ))
-        self.response_locks[original_message_id]["RESPONSE"] = message
-        with self.response_locks[original_message_id]["LOCK"]:
-            self.response_locks[original_message_id]["LOCK"].notify_all()
-
-    def swarm_bot_handle_sync_swarm_memory_message(self, message):
-        message_payload = message.get_message_payload()
-        swarm_memory_ref = message_payload["SWARM_MEMORY_REF"]
-        flattend_ref = self.flatten(swarm_memory_ref)
-        for path, bot_ids in flattend_ref.items():
-            for id in bot_ids:
-                self.swarm_memory_interface.add_data_holder(path, id)
-            if "TASK_QUEUE" in path:
-                self.task_queue_has_values.set()
-
-        final_swarm_memory_ref = self.flatten(self.swarm_memory_interface.get_data_to_holder_id_map())
-        for path, bot_ids in final_swarm_memory_ref.items():
-            self.send_propagation_message(
-                MessageTypes.SWARM_MEMORY_OBJECT_LOCATION,
-                {"PATH": path, "LOCATION_IDS": bot_ids}
-            )
-
-    def get_data_to_holder_id_map(self):
-        return self.swarm_memory_interface.get_data_to_holder_id_map()
+        else:
+            self.response_locks[original_message_id]["RESPONSE"] = message
+            with self.response_locks[original_message_id]["LOCK"]:
+                self.response_locks[original_message_id]["LOCK"].notify_all()
 
     def flatten(self, dictionary, parent_key=False, separator='/'):
         items = []
@@ -449,12 +482,6 @@ class SwarmBot(NetworkNode):
             else:
                 items.append((new_key, value))
         return dict(items)
-
-    def get_swarm_memory_usage_stats(self):
-        return self.swarm_memory_interface.get_swarm_memory_usage_stats()
-
-    def get_local_swarm_memory_contents(self):
-        return self.swarm_memory_interface.get_local_contents()
 
     def task_executor_loop(self):
         while (not self.run_node.is_set()) and (not self.run_task_executor.is_set()):

@@ -70,7 +70,10 @@ class NetworkNode(MessageChannelUser):
         self.num_processes = 0
 
         self.msg_handler_dict = {}
-        self.assign_msg_handler(str(NetworkNodeMessageTypes.REQUEST_CONNECTION), self.network_node_handle_request_connection_message)
+        self.assign_msg_handler(
+            str(NetworkNodeMessageTypes.REQUEST_CONNECTION),
+            self.network_node_handle_request_connection_message
+        )
         self.assign_msg_handler(
             str(NetworkNodeMessageTypes.ACCEPT_CONNECTION_REQUEST),
             self.network_node_handle_accept_connection_request_message
@@ -273,7 +276,9 @@ class NetworkNode(MessageChannelUser):
         sender_id = message.get_sender_id()
         msg_type = message.get_message_type()
         exempt_msg_types = [NetworkNodeMessageTypes.REQUEST_CONNECTION]
-        if (msg_type not in exempt_msg_types) and (sender_id not in self.msg_channels) and (sender_id not in self.connection_pending_list):
+        if (msg_type not in exempt_msg_types) and \
+                (sender_id not in self.msg_channels) and \
+                (sender_id not in self.connection_pending_list):
             raise Exception("ERROR: Received message from unknown node: {}. Known node list: {}".format(
                 str(sender_id),
                 self.get_connections()
@@ -297,7 +302,7 @@ class NetworkNode(MessageChannelUser):
         """
         if not self.can_add_to_outbox:
             return None
-        
+
         targets = self.propagation_strategy.determine_prop_targets(None)
 
         message_id = self._generate_message_id()
@@ -327,19 +332,35 @@ class NetworkNode(MessageChannelUser):
         """
         if not self.can_add_to_outbox:
             return None
-        
+
+        if target_node_id in self.torndown_nodes:
+            self.logger.warning("WARNING: {} tried to send message to torn down bot: {}".format(
+                self.get_id(),
+                target_node_id
+            ))
+
         message_id = self._generate_message_id()
 
         if (target_node_id in self.msg_channels) or (message_type == NetworkNodeMessageTypes.REQUEST_CONNECTION):
             return self._create_message(target_node_id, message_id, message_type, message_payload, False).get_id()
         elif target_node_id in self.connection_pending_list:
-            msg = self._create_message(target_node_id, message_id, message_type, message_payload, False, add_to_send_queue=False)
+            msg = self._create_message(
+                target_node_id,
+                message_id,
+                message_type,
+                message_payload,
+                False,
+                add_to_send_queue=False
+            )
 
             self.connection_pending_list[target_node_id]["MSGS_TO_SEND"].append(msg)
 
             return msg.get_id()
         else:
-            raise Exception("ERROR: Tried to send a message to an unknown node: {}. Known nodes: {}".format(target_node_id, self.get_connections()))
+            raise Exception("ERROR: Tried to send a message to an unknown node: {}. Known nodes: {}".format(
+                target_node_id,
+                self.get_connections())
+            )
 
     def get_message_channels(self) -> None:
         """
@@ -489,7 +510,6 @@ class NetworkNode(MessageChannelUser):
         raise Exception("ERROR: Node was not idle before timeout was hit.")
 
     def network_node_handle_request_connection_message(self, message):
-        print("HANDLING REQUEST FROM NETWORK NODE")
         new_network_node = message.get_message_payload()["NODE"]
 
         node_id = new_network_node.get_id()
@@ -546,7 +566,7 @@ class NetworkNode(MessageChannelUser):
                         self.get_id(),
                         target
                     ))
-                elif (msg_type not in exempt_msg_types) and (target not in self.msg_channels):                    
+                elif (msg_type not in exempt_msg_types) and (target not in self.msg_channels):
                     raise Exception(
                         "ERROR: Tried to send message to unknown node: {}. Known node list: {}".format(
                             str(target),
@@ -633,22 +653,13 @@ class NetworkNode(MessageChannelUser):
                     self.rcvd_messages[msg_id] = {"MSG": message, "NUM_TIMES_RCVD": 1}
 
                     if message_type in self.msg_handler_dict:
-                        for handler in self.msg_handler_dict[message_type]:
-                            handler(message)
+                        thread = threading.Thread(target=self._run_handlers, args=(message,))
+                        thread.start()
                     else:
                         self.logger.warning("Warning: Received message type with no assigned handler: " + str(message_type))
 
-                    if should_propagate:
-                        targets = self.propagation_strategy.determine_prop_targets(message)
-
-                        if self.can_add_to_outbox:
-                            for target_node_id in targets:
-                                self._create_message(target_node_id, msg_id, message_type, message_payload, True)
-
-                            for pending_id in self.connection_pending_list:
-                                msg = self._create_message(pending_id, msg_id, message_type, message_payload, True, add_to_send_queue=False)
-
-                                self.connection_pending_list[pending_id]["MSGS_TO_SEND"].append(msg)
+                    if should_propagate and self.can_add_to_outbox:
+                        self.__continue_propagation(message)
 
                 self._notify_process_state(False)
 
@@ -675,7 +686,39 @@ class NetworkNode(MessageChannelUser):
 
         return message_id
 
-    def _create_message(self, target_node_id, message_id, message_type, message_payload, propagate_message, add_to_send_queue=True):
+    def __continue_propagation(self, message):
+        should_propagate = message.get_propagation_flag()
+        if should_propagate and self.can_add_to_outbox:
+            msg_id = message.get_id()
+            message_type = str(message.get_message_type())
+            message_payload = message.get_message_payload()
+
+            targets = self.propagation_strategy.determine_prop_targets(message)
+
+            for target_node_id in targets:
+                self._create_message(target_node_id, msg_id, message_type, message_payload, True)
+
+            for pending_id in self.connection_pending_list:
+                msg = self._create_message(
+                    pending_id,
+                    msg_id,
+                    message_type,
+                    message_payload,
+                    True,
+                    add_to_send_queue=False
+                )
+
+                self.connection_pending_list[pending_id]["MSGS_TO_SEND"].append(msg)
+
+    def _create_message(
+            self,
+            target_node_id,
+            message_id,
+            message_type,
+            message_payload,
+            propagate_message,
+            add_to_send_queue=True
+            ):
         """
         _create_message
 
@@ -730,3 +773,8 @@ class NetworkNode(MessageChannelUser):
         if curr_state != new_state:
             for listener in self.idle_listeners:
                 listener.notify_idle_state(self.get_id(), new_state)
+
+    def _run_handlers(self, message):
+        message_type = str(message.get_message_type())
+        for handler in self.msg_handler_dict[message_type]:
+            handler(message)

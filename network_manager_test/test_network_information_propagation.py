@@ -1,6 +1,5 @@
 import logging
 import unittest
-import time
 
 from network_manager_test.network_node_test_class import NetworkNodeTestClass
 from network_manager_test.propagation_strategy_comparer import PropagationStrategyComparer

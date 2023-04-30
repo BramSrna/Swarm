@@ -6,15 +6,15 @@ class UpdateBlock(object):
 
     def get_path(self):
         return self.path
-    
+
     def get_time_issued(self):
         return self.time_issued
-    
+
     def get_new_value(self):
         return self.new_value
 
     def get_expected_state(self):
         return self.expected_state
-    
+
     def __str__(self):
-        return "Time issued: {}, path to update: {}, new value: {}".format(self.time_issued, self.path, self.new_value)
+        return "Time issued: {}, state: {}, new value: {}".format(self.time_issued, self.expected_state, self.new_value)
