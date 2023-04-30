@@ -6,9 +6,3 @@ One possible solution is to use something similar to the blockchain. There would
 
 ### State based counter
 Instead of a counter, the bots include the state they were in when the message was sent. Bots use that state to do determine where the message should be in the chain. From reading the chain, the state of the swarm can be rebuilt as needed. Individual data structures built on the swarm can add collision handling methods. By default, the newest message will handle collisions.
-
-
-Swap local memory to hold a collection of SwarmSharedObject
-Update SwarmSharedObject to have send + receive capabilities to maintain the blockchain
-
-Create
