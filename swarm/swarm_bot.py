@@ -1,14 +1,13 @@
 import threading
 import os
-import collections
 
 from network_manager.network_node.network_node import NetworkNode
 from swarm.executor_interface import ExecutorInterface
 from swarm.message_types import MessageTypes
 from swarm.swarm_task.task_scheduling_algorithms import simple_task_sort
 from swarm.swarm_memory.swarm_memory_interface import SwarmMemoryInterface
-from swarm.swarm_task.task_execution_controller import TaskExecutionController
 from network_manager.network_node.network_node_message_types import NetworkNodeMessageTypes
+from swarm.swarm_task.task_executor_pool import TaskExecutorPool
 
 
 class SwarmBot(NetworkNode):
@@ -25,19 +24,11 @@ class SwarmBot(NetworkNode):
         self.response_locks = {}
         self.msg_intermediaries = {}
 
-        self.run_task_executor = threading.Event()
-        self.task_queue_has_values = threading.Event()
-
-        self.task_execution_history = []
-        self.execution_group_ledger = {}
-
-        self.max_num_task_executors = 1
-        self.task_executors = {}
-
         task_scheduling_algorithms = {
             "SimpleTaskSort": simple_task_sort
         }
 
+        self.max_num_task_executors = self.config["max_num_task_executors"]
         self.max_task_executions = self.config["max_task_executions"]
         self.task_scheduling_algorithm = task_scheduling_algorithms[self.config["task_scheduling_algorithm"]]
         self.swarm_memory_optimization_operation_threshold = self.config["swarm_memory_optimization_operation_threshold"]
@@ -52,30 +43,6 @@ class SwarmBot(NetworkNode):
             self.swarm_bot_handle_bot_teardown_message
         )
 
-        self.assign_msg_handler(
-            str(MessageTypes.EXECUTION_GROUP_CREATION),
-            self.swarm_bot_handle_execution_group_creation_message
-        )
-        self.assign_msg_handler(
-            str(MessageTypes.REQUEST_JOIN_EXECUTION_GROUP),
-            self.swarm_bot_handle_request_join_execution_group_message
-        )
-        self.assign_msg_handler(
-            str(MessageTypes.START_TASK_EXECUTION),
-            self.swarm_bot_handle_start_task_execution_message
-        )
-        self.assign_msg_handler(
-            str(MessageTypes.EXECUTION_GROUP_TEARDOWN),
-            self.swarm_bot_handle_execution_group_teardown_message
-        )
-        self.assign_msg_handler(
-            str(MessageTypes.TASK_OUTPUT),
-            self.swarm_bot_handle_task_output_message
-        )
-        self.assign_msg_handler(
-            str(MessageTypes.EXECUTION_GROUP_DELETION),
-            self.swarm_bot_handle_execution_group_deletion_message
-        )
         self.assign_msg_handler(
             str(MessageTypes.NEW_SWARM_BOT_ID),
             self.swarm_bot_handle_new_swarm_bot_id_message
@@ -102,9 +69,13 @@ class SwarmBot(NetworkNode):
             self.swarm_memory_optimization_operation_threshold,
             self.key_count_threshold
         )
-        self.swarm_memory_interface.add_path_watcher("TASK_QUEUE", self.task_queue_monitor)
 
-        self.start_swarm_bot()
+        self.task_executor_pool = TaskExecutorPool(
+            ExecutorInterface(self),
+            self.max_num_task_executors,
+            self.max_task_executions,
+            self.task_scheduling_algorithm
+        )
 
     def get_known_bot_ids(self):
         return list(self.msg_intermediaries.keys())
@@ -112,26 +83,60 @@ class SwarmBot(NetworkNode):
     def get_local_swarm_memory_contents(self):
         return self.swarm_memory_interface.get_local_swarm_memory_contents()
 
-    def start_swarm_bot(self):
-        self.start_task_executor()
+    def add_path_watcher(self, path_to_watch, method_to_call):
+        return self.swarm_memory_interface.add_path_watcher(path_to_watch, method_to_call)
+
+    def set_task_executor_status(self, new_status):
+        self.task_executor_pool.set_task_executor_status(new_status)
+
+    def get_task_queue(self):
+        task_queue = self.read_from_swarm_memory("TASK_QUEUE")
+        if task_queue is None:
+            return []
+        else:
+            return list(task_queue.keys())
 
     def teardown(self):
         self.swarm_memory_interface.teardown()
         self.send_propagation_message(NetworkNodeMessageTypes.BOT_TEARDOWN, {"BOT_ID": self.get_id()})
-        self.set_task_executor_status(False)
+        self.task_executor_pool.teardown()
         self.set_message_inbox_status(False)
         self.set_message_outbox_status(False)
+
+        self.unassign_msg_handler(
+            str(NetworkNodeMessageTypes.REQUEST_CONNECTION),
+            self.swarm_bot_handle_request_connection_message
+        )
+        self.unassign_msg_handler(
+            str(NetworkNodeMessageTypes.BOT_TEARDOWN),
+            self.swarm_bot_handle_bot_teardown_message
+        )
+
+        self.unassign_msg_handler(
+            str(MessageTypes.NEW_SWARM_BOT_ID),
+            self.swarm_bot_handle_new_swarm_bot_id_message
+        )
+        self.unassign_msg_handler(
+            str(MessageTypes.FORWARD_MESSAGE),
+            self.swarm_bot_handle_forward_message_message
+        )
+        self.unassign_msg_handler(
+            str(MessageTypes.SYNC_INTERMEDIARIES),
+            self.swarm_bot_handle_sync_intermediaries_message
+        )
+        self.unassign_msg_handler(
+            str(MessageTypes.REQUEST_PATH_TO_BOT),
+            self.swarm_bot_handle_request_path_to_bot
+        )
+        self.unassign_msg_handler(
+            str(MessageTypes.MSG_RESPONSE),
+            self.swarm_bot_handle_msg_response_message
+        )
+
         self.wait_until_idle()
         NetworkNode.teardown(self)
 
-    def start_task_executor(self):
-        thread = threading.Thread(target=self.task_executor_loop)
-        thread.start()
-
     def receive_task_bundle(self, new_task_bundle, listener_bot_id=None):
-        if new_task_bundle.get_req_num_bots() - 1 > len(self.msg_channels):
-            return False
-
         tasks = new_task_bundle.get_tasks()
         for i in range(len(tasks)):
             curr_task = tasks[i]
@@ -145,7 +150,6 @@ class SwarmBot(NetworkNode):
                     "LISTENER_ID": listener_bot_id
                 }
             )
-            self.task_queue_has_values.set()
         return True
 
     def write_to_swarm_memory(self, path_to_create, value):
@@ -158,45 +162,7 @@ class SwarmBot(NetworkNode):
         return self.swarm_memory_interface.delete(path_to_delete)
 
     def get_task_execution_history(self):
-        return self.task_execution_history
-
-    def set_task_executor_status(self, new_status):
-        if new_status and self.run_task_executor.is_set():
-            self.run_task_executor.clear()
-            self.start_task_executor()
-        elif (not new_status) and (not self.run_task_executor.is_set()):
-            self.run_task_executor.set()
-            self.task_queue_has_values.set()
-
-    def get_task_queue(self):
-        return self.read_from_swarm_memory("TASK_QUEUE")
-
-    def get_next_task_to_execute(self):
-        next_task_info = None
-        task_queue = self.get_task_queue()
-        if task_queue is not None:
-            task_ids = list(task_queue.keys())
-            task_ids.sort(key=self.task_scheduling_algorithm)
-            while ((next_task_info is None) and (len(task_queue) > 0)):
-                next_task_id = task_ids.pop(0)
-                next_task_info = self.read_from_swarm_memory("TASK_QUEUE/" + str(next_task_id))
-
-                if next_task_info is not None:
-                    self.delete_from_swarm_memory("TASK_QUEUE/" + str(next_task_id))
-
-        return next_task_info
-
-    def get_execution_group_ledger(self):
-        return self.execution_group_ledger
-
-    def add_new_execution_group_leader(self, task_bundle_id, owner_id):
-        self.execution_group_ledger[task_bundle_id] = owner_id
-
-    def notify_task_completion(self, bundle_id):
-        self.task_executors.pop(bundle_id)
-        self.execution_group_ledger.pop(bundle_id)
-        self.task_queue_has_values.set()
-        self._notify_process_state(False)
+        return self.task_executor_pool.get_task_execution_history()
 
     def receive_message(self, message):
         payload = message.get_message_payload()
@@ -335,57 +301,6 @@ class SwarmBot(NetworkNode):
 
         return id_with_shortest_path
 
-    def task_queue_monitor(self):
-        self.task_queue_has_values.set()
-
-    def swarm_bot_handle_execution_group_creation_message(self, message):
-        msg_payload = message.get_message_payload()
-        task_bundle_id = msg_payload["TASK_BUNDLE_ID"]
-        owner_id = msg_payload["OWNER_ID"]
-
-        self.add_new_execution_group_leader(task_bundle_id, owner_id)
-        if task_bundle_id in self.task_executors:
-            self.task_executors[task_bundle_id].swarm_bot_handle_execution_group_creation_message(message)
-
-    def swarm_bot_handle_request_join_execution_group_message(self, message):
-        msg_payload = message.get_message_payload()
-        task_bundle_id = msg_payload["TASK_BUNDLE_ID"]
-        if task_bundle_id in self.task_executors:
-            self.task_executors[task_bundle_id].swarm_bot_handle_request_join_execution_group_message(message)
-
-    def swarm_bot_handle_start_task_execution_message(self, message):
-        msg_payload = message.get_message_payload()
-        task_bundle_id = msg_payload["TASK_BUNDLE_ID"]
-        if task_bundle_id in self.task_executors:
-            self.task_executors[task_bundle_id].swarm_bot_handle_start_task_execution_message(message)
-
-    def swarm_bot_handle_execution_group_teardown_message(self, message):
-        msg_payload = message.get_message_payload()
-        task_bundle_id = msg_payload["TASK_BUNDLE_ID"]
-        if task_bundle_id in self.task_executors:
-            self.task_executors[task_bundle_id].swarm_bot_handle_execution_group_teardown_message(message)
-
-    def swarm_bot_handle_task_output_message(self, message):
-        msg_payload = message.get_message_payload()
-        task_bundle_id = msg_payload["TASK_BUNDLE_ID"]
-        if task_bundle_id in self.task_executors:
-            self.task_executors[task_bundle_id].swarm_bot_handle_task_output_message(message)
-
-    def swarm_bot_handle_execution_group_deletion_message(self, message):
-        msg_payload = message.get_message_payload()
-        task_bundle_id = msg_payload["TASK_BUNDLE_ID"]
-        if task_bundle_id in self.execution_group_ledger:
-            self.execution_group_ledger.pop(task_bundle_id)
-
-    def handle_respond_to_read_message(self, message):
-        msg_payload = message.get_message_payload()
-        object_key = msg_payload["OBJECT_KEY"]
-        object_value = msg_payload["OBJECT_VALUE"]
-        table_id = msg_payload["TABLE_ID"]
-        self.write_to_swarm_memory(table_id, object_key, object_value)
-        if table_id == "TASK_QUEUE":
-            self.task_queue_has_values.set()
-
     def swarm_bot_handle_new_swarm_bot_id_message(self, message):
         msg_payload = message.get_message_payload()
         intermediary = msg_payload["MSG_INTERMEDIARY"]
@@ -420,7 +335,7 @@ class SwarmBot(NetworkNode):
         sender_id = message.get_sender_id()
         for intermediary_id in intermediary_list:
             self.save_msg_intermediary(intermediary_id, sender_id, intermediary_list[intermediary_id]["NUM_JUMPS"])
-        bot_ids = self.msg_intermediaries
+        bot_ids = list(self.msg_intermediaries.keys())
         for bot_id in bot_ids:
             self.send_propagation_message(
                 MessageTypes.NEW_SWARM_BOT_ID,
@@ -466,59 +381,10 @@ class SwarmBot(NetworkNode):
         message_payload = message.get_message_payload()
         original_message_id = message_payload["ORIGINAL_MESSAGE_ID"]
         if original_message_id not in self.response_locks:
-            self.logger.warning("ERROR: Received message response for message that was never sent: {}".format(
+            self.logger.warning("WARNING: Received message response for message that was never sent: {}".format(
                 message.get_message_payload()
             ))
         else:
             self.response_locks[original_message_id]["RESPONSE"] = message
             with self.response_locks[original_message_id]["LOCK"]:
                 self.response_locks[original_message_id]["LOCK"].notify_all()
-
-    def flatten(self, dictionary, parent_key=False, separator='/'):
-        items = []
-        for key, value in dictionary.items():
-            new_key = str(parent_key) + separator + key if parent_key else key
-            if isinstance(value, collections.abc.MutableMapping):
-                items.extend(self.flatten(value, new_key, separator).items())
-            else:
-                items.append((new_key, value))
-        return dict(items)
-
-    def task_executor_loop(self):
-        while (not self.run_node.is_set()) and (not self.run_task_executor.is_set()):
-            self.task_queue_has_values.wait()
-
-            if (not self.run_node.is_set()) and (not self.run_task_executor.is_set()) and \
-                    (len(self.task_executors.keys()) < self.max_num_task_executors):
-                self._notify_process_state(True)
-
-                next_task_info = self.get_next_task_to_execute()
-
-                if next_task_info is None:
-                    self.task_queue_has_values.clear()
-                    self._notify_process_state(False)
-                    continue
-
-                next_task = next_task_info["TASK"]
-                next_task_id = next_task.get_id()
-
-                req_num_bots = next_task_info["REQ_NUM_BOTS"]
-                bundle_id = next_task_info["PARENT_BUNDLE_ID"]
-                index_in_bundle = next_task_info["INDEX_IN_BUNDLE"]
-                listener_id = next_task_info["LISTENER_ID"]
-                task_type = next_task.__class__.__name__
-
-                self.task_executors[bundle_id] = TaskExecutionController(
-                    bundle_id,
-                    index_in_bundle,
-                    task_type,
-                    listener_id,
-                    next_task,
-                    next_task_id,
-                    req_num_bots,
-                    ExecutorInterface(self),
-                    self.max_task_executions
-                )
-                self.task_executors[bundle_id].start_task_execution_process()
-
-                self.task_execution_history.append(next_task)

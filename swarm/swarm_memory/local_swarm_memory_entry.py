@@ -294,3 +294,25 @@ class LocalSwarmMemoryEntry(object):
 
     def get_path(self):
         return self.path
+
+    def teardown(self):
+        self.executor_interface.unassign_msg_handler(
+            str(SwarmMemoryMessageTypes.REMOVE_HOLDER_ID),
+            self.local_swarm_memory_entry_handle_remove_holder_id_message
+        )
+        self.executor_interface.unassign_msg_handler(
+            str(SwarmMemoryMessageTypes.NEW_HOLDER_ID),
+            self.local_swarm_memory_entry_handle_new_holder_id_message
+        )
+        self.executor_interface.unassign_msg_handler(
+            str(SwarmMemoryMessageTypes.NEW_CHANGE_BLOCK),
+            self.local_swarm_memory_entry_handle_new_change_block_message
+        )
+        self.executor_interface.unassign_msg_handler(
+            str(SwarmMemoryMessageTypes.REQUEST_BLOCKCHAIN_TRANSFER),
+            self.local_swarm_memory_entry_handle_request_blockchain_transfer_message
+        )
+        self.executor_interface.unassign_msg_handler(
+            str(SwarmMemoryMessageTypes.REQUEST_READ),
+            self.local_swarm_memory_entry_handle_request_read_message
+        )
