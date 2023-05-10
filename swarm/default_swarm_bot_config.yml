@@ -5,3 +5,4 @@ max_task_executions: 10000
 task_scheduling_algorithm: "SimpleTaskSort"
 swarm_memory_optimization_operation_threshold: 10
 swarm_memory_key_count_threshold: 10
+max_num_task_executors: 1

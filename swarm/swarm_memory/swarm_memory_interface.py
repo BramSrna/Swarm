@@ -77,6 +77,9 @@ class SwarmMemoryInterface(object):
             for i in range(len(path_components) - 1):
                 key = path_components[i]
                 curr_dict = curr_dict[key]
+
+            if isinstance(curr_dict[path_components[-1]], LocalSwarmMemoryEntry):
+                curr_dict[path_components[-1]].teardown()
             curr_dict.pop(path_components[-1])
 
         self.executor_interface.send_propagation_message(
@@ -107,6 +110,7 @@ class SwarmMemoryInterface(object):
                         curr_path += path_components[j]
                     if self.has_path_saved_locally(curr_path):
                         self.set_save_path_locally(curr_path, False)
+                    curr_dict[key].teardown()
                     curr_dict[key] = {}
                 curr_dict = curr_dict[key]
 
@@ -158,13 +162,16 @@ class SwarmMemoryInterface(object):
     def __unwrap(self, value_to_unwrap):
         if isinstance(value_to_unwrap, dict):
             ret_dict = {}
-            for key, value in value_to_unwrap.items():
-                if isinstance(value, dict):
-                    ret_dict[key] = self.__unwrap(value)
-                else:
-                    ret_dict[key] = value.read()
-                    if value.is_saved_locally():
-                        self.__add_access(value.get_path(), self.executor_interface.get_id())
+            keys = list(value_to_unwrap.keys())
+            for key in keys:
+                if key in value_to_unwrap:
+                    value = value_to_unwrap[key]
+                    if isinstance(value, dict):
+                        ret_dict[key] = self.__unwrap(value)
+                    else:
+                        ret_dict[key] = value.read()
+                        if value.is_saved_locally():
+                            self.__add_access(value.get_path(), self.executor_interface.get_id())
             return ret_dict
         else:
             if value_to_unwrap.is_saved_locally():
@@ -207,6 +214,37 @@ class SwarmMemoryInterface(object):
                     SwarmMemoryMessageTypes.REQUEST_NEW_HOLDER,
                     {"PATH": path, "BLOCKCHAIN": self.get_obj_at_path(path).get_change_blocks()}
                 )
+            self.get_obj_at_path(path).teardown()
+
+        self.executor_interface.unassign_msg_handler(
+            str(NetworkNodeMessageTypes.REQUEST_CONNECTION),
+            self.swarm_memory_interface_handle_request_connection_message
+        )
+        self.executor_interface.unassign_msg_handler(
+            str(NetworkNodeMessageTypes.BOT_TEARDOWN),
+            self.swarm_memory_interface_handle_bot_teardown_message
+        )
+
+        self.executor_interface.unassign_msg_handler(
+            str(SwarmMemoryMessageTypes.SYNC_SWARM_MEMORY),
+            self.swarm_memory_interface_handle_sync_swarm_memory_message
+        )
+        self.executor_interface.unassign_msg_handler(
+            str(SwarmMemoryMessageTypes.NEW_HOLDER_ID),
+            self.swarm_memory_interface_handle_new_holder_id_message
+        )
+        self.executor_interface.unassign_msg_handler(
+            str(SwarmMemoryMessageTypes.DELETE_FROM_SWARM_MEMORY),
+            self.swarm_memory_interface_handle_delete_from_swarm_memory_message
+        )
+        self.executor_interface.unassign_msg_handler(
+            str(SwarmMemoryMessageTypes.REQUEST_NEW_HOLDER),
+            self.swarm_memory_interface_handle_request_new_holder_message
+        )
+        self.executor_interface.unassign_msg_handler(
+            str(SwarmMemoryMessageTypes.REQUEST_READ),
+            self.swarm_memory_interface_handle_request_read_message
+        )
 
     def swarm_memory_interface_handle_request_connection_message(self, message):
         new_id = message.get_sender_id()
@@ -242,9 +280,16 @@ class SwarmMemoryInterface(object):
         self.path_watchers[path_to_watch].append(method_to_call)
 
     def check_path_watchers(self, path_to_check):
-        if path_to_check in self.path_watchers:
-            for handler in self.path_watchers[path_to_check]:
-                handler()
+        for path in self.path_watchers:
+            if path_to_check.startswith(path):
+                obj_at_path = self.get_obj_at_path(path)
+                snapshot = None
+                if isinstance(obj_at_path, dict):
+                    snapshot = list(obj_at_path.keys())
+                else:
+                    snapshot = obj_at_path.read()
+                for handler in self.path_watchers[path]:
+                    handler(snapshot)
 
     def get_data_to_holder_id_map(self, map_to_convert):
         if isinstance(map_to_convert, dict):
@@ -268,6 +313,7 @@ class SwarmMemoryInterface(object):
             if not self.path_exists_in_memory(path):
                 self.initialize_path_in_memory(path)
             self.get_obj_at_path(path).add_holder_id(holder_id, time_issued)
+            self.check_path_watchers(path)
 
     def swarm_memory_interface_handle_delete_from_swarm_memory_message(self, message):
         message_payload = message.get_message_payload()
@@ -282,6 +328,8 @@ class SwarmMemoryInterface(object):
             for i in range(len(path_components) - 1):
                 key = path_components[i]
                 curr_dict = curr_dict[key]
+            if isinstance(curr_dict[path_components[-1]], LocalSwarmMemoryEntry):
+                curr_dict[path_components[-1]].teardown()
             curr_dict.pop(path_components[-1])
 
         if path_to_delete in self.local_usage_stats:
@@ -331,22 +379,29 @@ class SwarmMemoryInterface(object):
         path = message_payload["PATH"]
         bot_id = message_payload["ORIGINAL_SENDER_ID"]
         self.__add_access(path, bot_id)
+        obj_at_path = self.get_obj_at_path(path)
+        if (obj_at_path is None) or isinstance(obj_at_path, dict):
+            self.executor_interface.respond_to_message(
+                message,
+                {"INNER_VALUE": None}
+            )
 
     def __add_access(self, path, bot_id):
-        time_issued = time.time()
-        if bot_id not in self.local_usage_stats[path]["ACCESSES"]:
-            self.local_usage_stats[path]["ACCESSES"][bot_id] = 0
-        self.local_usage_stats[path]["ACCESSES"][bot_id] += 1
-        self.local_usage_stats[path]["TIME_OF_LAST_ACCESS"] = float(time_issued)
+        if self.has_path_saved_locally(path):
+            time_issued = time.time()
+            if bot_id not in self.local_usage_stats[path]["ACCESSES"]:
+                self.local_usage_stats[path]["ACCESSES"][bot_id] = 0
+            self.local_usage_stats[path]["ACCESSES"][bot_id] += 1
+            self.local_usage_stats[path]["TIME_OF_LAST_ACCESS"] = float(time_issued)
 
-        access_dict = self.local_usage_stats[path]["ACCESSES"]
-        if sum(access_dict.values()) == self.swarm_memory_optimization_operation_threshold:
-            ids_with_max_reads = [k for k, v in access_dict.items() if v == max(access_dict.values())]
-            for curr_id in ids_with_max_reads:
-                if curr_id != self.executor_interface.get_id():
-                    self.executor_interface.send_directed_message(
-                        curr_id,
-                        SwarmMemoryMessageTypes.REQUEST_NEW_HOLDER,
-                        {"PATH": path, "BLOCKCHAIN": self.get_obj_at_path(path).get_change_blocks()}
-                    )
-            self.local_usage_stats[path]["ACCESSES"] = {}
+            access_dict = self.local_usage_stats[path]["ACCESSES"]
+            if sum(access_dict.values()) == self.swarm_memory_optimization_operation_threshold:
+                ids_with_max_reads = [k for k, v in access_dict.items() if v == max(access_dict.values())]
+                for curr_id in ids_with_max_reads:
+                    if curr_id != self.executor_interface.get_id():
+                        self.executor_interface.send_directed_message(
+                            curr_id,
+                            SwarmMemoryMessageTypes.REQUEST_NEW_HOLDER,
+                            {"PATH": path, "BLOCKCHAIN": self.get_obj_at_path(path).get_change_blocks()}
+                        )
+                self.local_usage_stats[path]["ACCESSES"] = {}

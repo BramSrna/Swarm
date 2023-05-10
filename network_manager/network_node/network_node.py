@@ -157,6 +157,15 @@ class NetworkNode(MessageChannelUser):
         self.run_node.set()
         self.msg_inbox_has_values.set()
         self.msg_outbox_has_values.set()
+        self.unassign_msg_handler(
+            str(NetworkNodeMessageTypes.REQUEST_CONNECTION),
+            self.network_node_handle_request_connection_message
+        )
+        self.unassign_msg_handler(
+            str(NetworkNodeMessageTypes.ACCEPT_CONNECTION_REQUEST),
+            self.network_node_handle_accept_connection_request_message
+        )
+        self.unassign_msg_handler(str(NetworkNodeMessageTypes.BOT_TEARDOWN), self.network_node_handle_bot_teardown_message)
 
     def assign_msg_handler(self, msg_type: str, handler: object):
         """
@@ -175,6 +184,10 @@ class NetworkNode(MessageChannelUser):
             self.msg_handler_dict[msg_type] = []
         if handler not in self.msg_handler_dict[msg_type]:
             self.msg_handler_dict[msg_type].append(handler)
+
+    def unassign_msg_handler(self, msg_type: str, handler: object):
+        if (msg_type in self.msg_handler_dict) and (handler in self.msg_handler_dict[msg_type]):
+            self.msg_handler_dict[msg_type].remove(handler)
 
     def get_id(self) -> int:
         """
@@ -507,7 +520,7 @@ class NetworkNode(MessageChannelUser):
                 if self.is_idle():
                     return True
 
-        raise Exception("ERROR: Node was not idle before timeout was hit.")
+        raise Exception("ERROR: Node was not idle before timeout was hit. # Processes: {}".format(self.num_processes))
 
     def network_node_handle_request_connection_message(self, message):
         new_network_node = message.get_message_payload()["NODE"]
