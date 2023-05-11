@@ -7,4 +7,4 @@ flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statist
 
 # Run the unittests
 pytest
-# Add the following flags to enable wider debug logging
+# Add the following flags to enable wider debug logging: -o log_cli=true --log-cli-level=DEBUG
