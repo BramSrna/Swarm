@@ -1,13 +1,5 @@
 # Swarm
-Repo for general swam development
-
-# Use Case
-1. User logs in through browser
-2. User enters task bundle (tasks to execute, how many bots per task, any output or logs to measure)
-3. Bots in swarm execute tasks
-4. User can monitor execution
-5. User notified when task execution complete
-
+Repo for general swarm development
 
 Task execution
 * Collaboration on tasks
@@ -15,22 +7,18 @@ Task execution
 * Emergent behaviour
 * Self replication + improvement
 
-## Milestones
-### Milestone 1 (Centralized task distribution)
+## Iterations
+### Iteration 1 (Collaboration on tasks, Task Optimization)
 1. Swarm manager receives tasks
 2. Swarm manager creates execution groups of bots to executes tasks and distributes the tasks to the bots
-3. Bots in execution group connect together and execute the task
+3. Bots in execution group connect together, execute, and optimize the task
 4. On task completion, the bots disconnect from each other
 
-### Milestone 2 (Decentralized version of milestone 1)
-1. Swarm manager receives tasks
-2. Swarm manager distributes tasks to all bots
-3. Bots form and tear down groups as needed
+### Iteration 2 (Emergent behaviour, Self replication + improvement)
+1. Execution group can create new tasks while executing a task bundle
 
+### Iteration 3 (Self replication + improvement)
+1. Task framework built up in previous iterations
 
-Augmented reality enabled devices connected in a swarm
-
+### Potential Areas For Future Growth
 ![image](https://user-images.githubusercontent.com/32938492/215887088-2bfbe084-559f-4390-ad02-17658bb54129.png)
-
-To log on test run:
--o log_cli=true --log-cli-level=DEBUG
