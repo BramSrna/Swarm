@@ -26,6 +26,40 @@ class SimpleTask(SwarmTask):
 
 
 class TestSwarmBotTaskInbox(NetworkNodeTestClass):
+    def test_swarm_bot_will_execute_task_when_not_already_executing_a_task(self):
+        test_swarm_bot = self.create_network_node(SwarmBot)
+
+        test_task_bundle = SwarmTaskBundle()
+        test_task_bundle.add_task(SimpleTask, 1)
+
+        self.assertFalse(test_task_bundle.is_complete())
+
+        accepted = test_swarm_bot.receive_task_bundle(test_task_bundle)
+        self.assertTrue(accepted)
+
+        self.wait_for_idle_network()
+
+        self.assertTrue(test_task_bundle.is_complete())
+
+    def test_swarm_bot_will_pick_up_next_task_in_queue_when_done_executing_current_task(self):
+        test_swarm_bot = self.create_network_node(SwarmBot)
+
+        test_task_bundle_1 = SwarmTaskBundle()
+        test_task_bundle_1.add_task(SimpleTask, 1)
+        test_task_bundle_2 = SwarmTaskBundle()
+        test_task_bundle_2.add_task(SimpleTask, 1)
+
+        self.assertFalse(test_task_bundle_1.is_complete())
+        self.assertFalse(test_task_bundle_2.is_complete())
+
+        test_swarm_bot.receive_task_bundle(test_task_bundle_1)
+        test_swarm_bot.receive_task_bundle(test_task_bundle_2)
+
+        self.wait_for_idle_network()
+
+        self.assertTrue(test_task_bundle_1.is_complete())
+        self.assertTrue(test_task_bundle_2.is_complete())
+
     def test_incoming_task_bundle_will_be_stored_in_swarm_memory(self):
         test_swarm_bot_1 = self.create_network_node(SwarmBot)
         test_swarm_bot_2 = self.create_network_node(SwarmBot)
