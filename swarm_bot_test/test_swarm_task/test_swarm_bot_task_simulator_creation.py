@@ -19,14 +19,23 @@ class ShortestDistanceSolverTask(SwarmTask):
         return self.simulator.check_for_finish()
 
     def execute_task(self):
-        curr_loc = self.simulator.get_curr_location()
-        random.choice(self.simulator.get_possible_options())()
-        new_loc = self.simulator.get_curr_location()
-        if curr_loc != new_loc:
-            self.shortest_path.append(new_loc)
+        curr_state = self.simulator.get_current_simulator_state()
+        random.choice(self.simulator.get_possible_actions_as_methods(curr_state))()
+        new_state = self.simulator.get_current_simulator_state()
+        if curr_state != new_state:
+            self.shortest_path.append((new_state[0], new_state[1]))
 
     def get_task_output(self):
         return self.shortest_path
+    
+    def get_simulator(self):
+        return self.simulator
+
+    def get_state(self):
+        return self.simulator.get_current_simulator_state()
+
+    def get_possible_actions(self, state):
+        return self.simulator.get_possible_actions(state)
 
 
 class TestSwarmBotTaskSimulatorCreation(NetworkNodeTestClass):
@@ -41,6 +50,21 @@ class TestSwarmBotTaskSimulatorCreation(NetworkNodeTestClass):
         self.wait_for_idle_network()
 
         self.assertTrue(test_task_bundle.is_complete())
+
+        expected_simulator = test_task_bundle.get_tasks()[0].get_simulator()
+        actual_simulator = test_swarm_bot.get_simulator_for_task(ShortestDistanceSolverTask)
+        self.assertNotEqual(None, actual_simulator)
+
+        possible_states = expected_simulator.get_traversed_path()
+        for state in possible_states:
+            expected_possible_actions = expected_simulator.get_possible_actions(state)
+            actual_possible_actions = actual_simulator.get_possible_actions(state)[0]
+            print(expected_possible_actions, actual_possible_actions)
+            self.assertEqual(len(expected_possible_actions), len(actual_possible_actions))
+            self.assertEqual(expected_possible_actions[0], actual_possible_actions[0])
+            self.assertEqual(expected_possible_actions[1], actual_possible_actions[1])
+            self.assertEqual(expected_possible_actions[2], actual_possible_actions[2])
+            self.assertEqual(expected_possible_actions[3], actual_possible_actions[3])
 
 
 if __name__ == "__main__":

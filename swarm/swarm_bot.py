@@ -77,6 +77,11 @@ class SwarmBot(NetworkNode):
             self.task_scheduling_algorithm
         )
 
+    def get_simulator_for_task(self, task_type):
+        simulators = self.read_from_swarm_memory("TASK_SIMULATORS")
+        print(simulators)
+        return self.read_from_swarm_memory("TASK_SIMULATORS/" + task_type.__name__)
+
     def get_known_bot_ids(self):
         return list(self.msg_intermediaries.keys())
 

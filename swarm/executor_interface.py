@@ -40,3 +40,6 @@ class ExecutorInterface(object):
 
     def unassign_msg_handler(self, msg_type, handler):
         return self.swarm_bot.unassign_msg_handler(msg_type, handler)
+    
+    def write_to_swarm_memory(self, path_to_create, value):
+        return self.swarm_bot.write_to_swarm_memory(path_to_create, value)

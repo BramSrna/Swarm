@@ -26,3 +26,10 @@ class SwarmTask(object):
     def setup(self, executor_interface, execution_group_info):
         self.executor_interface = executor_interface
         self.execution_group_info = execution_group_info
+
+    def get_state(self):
+        raise Exception("ERROR: The get_state method must be implemented by the concrete class.")
+
+    def get_possible_actions(self, state):
+        raise Exception("ERROR: The get_possible_actions method must be implemented by the concrete class.")
+

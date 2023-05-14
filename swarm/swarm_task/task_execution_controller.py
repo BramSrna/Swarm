@@ -4,6 +4,7 @@ import threading
 from enum import Enum
 
 from swarm.swarm_task.swarm_task_message_types import SwarmTaskMessageTypes
+from swarm.swarm_task.task_simulator import TaskSimulator
 
 
 class TaskStates(Enum):
@@ -45,6 +46,9 @@ class TaskExecutionController(object):
             self.execution_group_owner_id = None
             self.task_completed = False
             self.execution_group = {}
+            self.task_simulator = self.executor_interface.read_from_swarm_memory("TASK_SIMULATORS/" + self.task_type)
+            if self.task_simulator is None:
+                self.task_simulator = TaskSimulator()
 
             self.add_execution_group_member(self.executor_interface.get_id(), self.task_type, self.task_id)
 
@@ -79,7 +83,7 @@ class TaskExecutionController(object):
     def start_task_execution_process(self):
         self.transition_state(TaskStates.SETUP)
 
-    def setup_task(self):
+    def setup_task(self):         
         if self.index_in_bundle == 0:
             self.create_execution_group()
             if self.req_num_bots == 1:
@@ -136,6 +140,9 @@ class TaskExecutionController(object):
         curr_execution = 0
         max_executions = self.max_task_executions
         while (not self.task.is_complete()) and (curr_execution < max_executions):
+            curr_state = self.task.get_state()
+            possible_actions = self.task.get_possible_actions(curr_state)
+            self.task_simulator.add_data_point(curr_state, possible_actions)
             self.task.execute_task()
             curr_execution += 1
 
@@ -174,6 +181,9 @@ class TaskExecutionController(object):
         self.transition_state(TaskStates.TEARDOWN)
 
     def teardown_execution_group(self):
+        print("SIMULATOR: {}".format(self.task_simulator))
+        self.executor_interface.write_to_swarm_memory("TASK_SIMULATORS/" + self.task_type, self.task_simulator)
+
         if self.task_completed:
             if (self.req_num_bots > 1) and (self.index_in_bundle == 0):
                 self.executor_interface.send_propagation_message(
@@ -221,12 +231,13 @@ class TaskExecutionController(object):
 
         if task_bundle_id == self.bundle_id:
             new_execution_group_owner = self.task_executor_pool.get_execution_group_ledger()[task_bundle_id]["OWNER"]
-            if (self.index_in_bundle == 0) and (new_execution_group_owner != self.execution_group_owner_id):
-                self.execution_group_owner_id = new_execution_group_owner
-                self.transition_state(TaskStates.TEARDOWN)
-            elif (self.index_in_bundle != 0) and (new_execution_group_owner != self.execution_group_owner_id):
-                self.execution_group_owner_id = new_execution_group_owner
-                self.join_execution_group()
+            if (new_execution_group_owner != self.execution_group_owner_id):
+                if (self.index_in_bundle == 0):
+                    self.execution_group_owner_id = new_execution_group_owner
+                    self.transition_state(TaskStates.TEARDOWN)
+                else:
+                    self.execution_group_owner_id = new_execution_group_owner
+                    self.join_execution_group()
 
     def task_execution_controller_handle_request_join_execution_group_message(self, message):
         msg_payload = message.get_message_payload()
