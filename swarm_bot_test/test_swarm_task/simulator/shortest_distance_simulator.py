@@ -10,16 +10,29 @@ class ShortestDistanceSimulator(Simulator):
         self.num_columns = num_columns
         self.num_rows = num_rows
 
-        start_loc = self.generate_random_location()
-        end_loc = self.generate_random_location()
-        while end_loc == start_loc:
-            end_loc = self.generate_random_location()
+        self.start_loc = self.generate_random_location()
+        self.end_loc = self.generate_random_location()
+        while self.end_loc == self.start_loc:
+            self.end_loc = self.generate_random_location()
+        self.end_col, self.end_row = self.end_loc
 
-        self.curr_col, self.curr_row = start_loc
-        self.end_col, self.end_row = end_loc
+        self.curr_col = None
+        self.curr_row = None
+        self.has_loc_been_visited = None
+        self.traversed_path = None
 
+        self.reset()
+
+    def reset(self):
+        self.curr_col, self.curr_row = self.start_loc
+        self.traversed_path = [self.start_loc]
         self.has_loc_been_visited = False
-        self.traversed_path = [start_loc]
+
+    def get_start_loc(self):
+        return self.start_loc
+    
+    def get_end_loc(self):
+        return self.end_loc
 
     def generate_random_location(self):
         col = random.randint(0, self.num_columns - 1)
@@ -82,6 +95,8 @@ class ShortestDistanceSimulator(Simulator):
             possible_actions[2] = 0
         if col <= 0:
             possible_actions[3] = 0
+        if (col == self.end_col) and (row == self.end_row):
+            possible_actions = [0, 0, 0, 0]
 
         return possible_actions
     
@@ -98,7 +113,7 @@ class ShortestDistanceSimulator(Simulator):
             method_possible_actions.append(self.move_left)
         return method_possible_actions
     
-    def get_possible_states(self):
+    def get_all_possible_states(self):
         possible_states = []
         for col in range(self.num_columns - 1):
             for row in range(self.num_rows - 1):

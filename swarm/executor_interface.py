@@ -2,6 +2,8 @@ class ExecutorInterface(object):
     def __init__(self, swarm_bot):
         self.swarm_bot = swarm_bot
 
+        self.flow_info = []
+
     def get_id(self):
         return self.swarm_bot.get_id()
 
@@ -43,3 +45,9 @@ class ExecutorInterface(object):
     
     def write_to_swarm_memory(self, path_to_create, value):
         return self.swarm_bot.write_to_swarm_memory(path_to_create, value)
+    
+    def add_flow_info(self, method_name, method_params, ret_value):
+        return self.flow_info.append((method_name, method_params, ret_value))
+    
+    def get_flow_info(self):
+        return self.flow_info

@@ -181,7 +181,6 @@ class TaskExecutionController(object):
         self.transition_state(TaskStates.TEARDOWN)
 
     def teardown_execution_group(self):
-        print("SIMULATOR: {}".format(self.task_simulator))
         self.executor_interface.write_to_swarm_memory("TASK_SIMULATORS/" + self.task_type, self.task_simulator)
 
         if self.task_completed:
@@ -208,7 +207,6 @@ class TaskExecutionController(object):
         )
 
         self.is_idle = True
-        print("DONE")
         self.task_executor_pool.notify_idle(self)
 
     def add_execution_group_member(self, owner_id, task_type, task_id):
