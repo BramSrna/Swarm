@@ -94,12 +94,16 @@ class TaskExecutorPool(object):
             self.idle_executors.append(task_executor)
         self.run_task_scheduler()
 
-    def task_queue_monitor(self, snapshot):
+    def task_queue_monitor(self, path, snapshot):
         with self.task_queue_lock:
             new_task_ids = snapshot
             for task_id in new_task_ids:
                 if task_id not in self.task_queue:
-                    self.task_queue.append(task_id)
+                    task_info = self.executor_interface.read_from_swarm_memory("TASK_QUEUE/" + str(task_id))
+                    if task_info is not None:
+                        task = task_info["TASK"]
+                        task.set_executor_interface(self.executor_interface)
+                        self.task_queue.append(task)
         self.run_task_scheduler()
 
     def get_idle_task_executor(self):
@@ -113,11 +117,11 @@ class TaskExecutorPool(object):
         with self.task_queue_lock:
             task_info = None
             if len(self.task_queue) > 0:
-                self.task_queue.sort(key=self.task_scheduling_algorithm)
+                self.task_queue.sort(key=self.task_scheduling_algorithm, reverse=True)
 
                 while ((task_info is None) and (len(self.task_queue) > 0)):
-                    next_task_id = self.task_queue.pop(0)
-                    task_info = self.executor_interface.read_from_swarm_memory("TASK_QUEUE/" + str(next_task_id))
+                    next_task = self.task_queue.pop(0)
+                    task_info = self.executor_interface.read_from_swarm_memory("TASK_QUEUE/" + str(next_task.get_id()))
             return task_info
 
     def run_task_scheduler(self):

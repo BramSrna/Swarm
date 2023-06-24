@@ -8,6 +8,9 @@ from swarm.swarm_task.task_scheduling_algorithms import simple_task_sort
 from swarm.swarm_memory.swarm_memory_interface import SwarmMemoryInterface
 from network_manager.network_node.network_node_message_types import NetworkNodeMessageTypes
 from swarm.swarm_task.task_executor_pool import TaskExecutorPool
+from swarm.swarm_task.swarm_task_bundle import SwarmTaskBundle
+from swarm.machine_learning.federated_learning.tasks.federated_learning_model_training_task import FederatedLearningModelTrainingTask
+from swarm.machine_learning.training_coordinator import TrainingCoordinator
 
 
 class SwarmBot(NetworkNode):
@@ -76,6 +79,8 @@ class SwarmBot(NetworkNode):
             self.max_task_executions,
             self.task_scheduling_algorithm
         )
+
+        self.training_coordinator = TrainingCoordinator(ExecutorInterface(self))
 
     def get_known_bot_ids(self):
         return list(self.msg_intermediaries.keys())
@@ -151,6 +156,9 @@ class SwarmBot(NetworkNode):
                 }
             )
         return True
+    
+    def initalize_federated_learning_model(self, model_class, training_task, data_threshold, aggregation_threshold):
+        return self.training_coordinator.initalize_federated_learning_model(model_class, training_task, data_threshold, aggregation_threshold)
 
     def write_to_swarm_memory(self, path_to_create, value):
         return self.swarm_memory_interface.write(path_to_create, value)

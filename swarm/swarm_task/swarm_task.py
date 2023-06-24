@@ -1,5 +1,5 @@
 class SwarmTask(object):
-    def __init__(self):
+    def __init__(self, task_params):
         self.id = id(self)
 
         self.executor_interface = None
@@ -26,3 +26,6 @@ class SwarmTask(object):
     def setup(self, executor_interface, execution_group_info):
         self.executor_interface = executor_interface
         self.execution_group_info = execution_group_info
+
+    def get_priority_score(self):
+        return 0.5

@@ -10,8 +10,8 @@ from swarm.swarm_task.swarm_task_message_types import SwarmTaskMessageTypes
 
 
 class SimpleTask(SwarmTask):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, task_params):
+        super().__init__(task_params)
         self.task_complete = False
         self.sleep_time = 1
         self.task_output = None
@@ -33,7 +33,7 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
         test_swarm_bot_1 = self.create_network_node(SwarmBot)
 
         test_task_bundle = SwarmTaskBundle()
-        test_task_bundle.add_task(SimpleTask, 1)
+        test_task_bundle.add_task(SimpleTask, 1, [])
 
         test_swarm_bot_1.set_task_executor_status(False)
 
@@ -47,7 +47,7 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
         test_swarm_bot_1 = self.create_network_node(SwarmBot)
 
         test_task_bundle = SwarmTaskBundle()
-        test_task_bundle.add_task(SimpleTask, 1)
+        test_task_bundle.add_task(SimpleTask, 1, [])
 
         test_swarm_bot_1.set_task_executor_status(False)
 
@@ -78,7 +78,7 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
         test_swarm_bot_3.set_task_executor_status(False)
 
         test_task_bundle = SwarmTaskBundle()
-        test_task_bundle.add_task(SimpleTask, 1)
+        test_task_bundle.add_task(SimpleTask, 1, [])
 
         check_val = test_swarm_bot_1.receive_task_bundle(test_task_bundle)
 
@@ -104,7 +104,7 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
         test_swarm_bot_3.set_task_executor_status(False)
 
         test_task_bundle = SwarmTaskBundle()
-        test_task_bundle.add_task(SimpleTask, 1)
+        test_task_bundle.add_task(SimpleTask, 1, [])
 
         check_val = test_swarm_bot_1.receive_task_bundle(test_task_bundle)
 
@@ -128,7 +128,7 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
         test_swarm_bot_1 = self.create_network_node(SwarmBot)
 
         test_task_bundle = SwarmTaskBundle()
-        test_task_bundle.add_task(SimpleTask, 1)
+        test_task_bundle.add_task(SimpleTask, 1, [])
 
         check_val = test_swarm_bot_1.receive_task_bundle(test_task_bundle)
 
@@ -147,7 +147,7 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
         test_swarm_bot_2.connect_to_network_node(test_swarm_bot_3)
 
         test_task_bundle = SwarmTaskBundle()
-        test_task_bundle.add_task(SimpleTask, 3)
+        test_task_bundle.add_task(SimpleTask, 3, [])
 
         check_val = test_swarm_bot_1.receive_task_bundle(test_task_bundle)
 
@@ -167,7 +167,7 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
         test_swarm_bot_2.connect_to_network_node(test_swarm_bot_3)
 
         test_task_bundle = SwarmTaskBundle()
-        test_task_bundle.add_task(SimpleTask, 1)
+        test_task_bundle.add_task(SimpleTask, 1, [])
 
         check_val = test_swarm_bot_1.receive_task_bundle(test_task_bundle)
 
@@ -198,7 +198,7 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
         test_swarm_bot_1.connect_to_network_node(listener_bot)
 
         test_task_bundle = SwarmTaskBundle()
-        test_task_bundle.add_task(SimpleTask, 1)
+        test_task_bundle.add_task(SimpleTask, 1, [])
 
         can_execute = test_swarm_bot_1.receive_task_bundle(test_task_bundle, listener_bot_id=listener_bot.get_id())
 
@@ -234,7 +234,7 @@ class TestSwarmBotTaskBundleInteraction(NetworkNodeTestClass):
         test_swarm_bot_1.connect_to_network_node(listener_bot)
 
         test_task_bundle = SwarmTaskBundle()
-        test_task_bundle.add_task(SimpleTask, 3)
+        test_task_bundle.add_task(SimpleTask, 3, [])
 
         can_execute = test_swarm_bot_1.receive_task_bundle(test_task_bundle, listener_bot_id=listener_bot.get_id())
 

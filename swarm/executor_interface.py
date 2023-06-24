@@ -31,6 +31,9 @@ class ExecutorInterface(object):
 
     def _notify_process_state(self, process_running):
         return self.swarm_bot._notify_process_state(process_running)
+    
+    def write_to_swarm_memory(self, path_to_write, value_to_write):
+        return self.swarm_bot.write_to_swarm_memory(path_to_write, value_to_write)
 
     def read_from_swarm_memory(self, path_to_read):
         return self.swarm_bot.read_from_swarm_memory(path_to_read)
@@ -40,3 +43,6 @@ class ExecutorInterface(object):
 
     def unassign_msg_handler(self, msg_type, handler):
         return self.swarm_bot.unassign_msg_handler(msg_type, handler)
+    
+    def receive_task_bundle(self, new_task_bundle, listener_bot_id=None):
+        return self.swarm_bot.receive_task_bundle(new_task_bundle, listener_bot_id=listener_bot_id)

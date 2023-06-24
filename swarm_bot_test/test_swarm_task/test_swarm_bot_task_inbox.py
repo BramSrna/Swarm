@@ -9,8 +9,8 @@ from swarm.swarm_task.swarm_task_bundle import SwarmTaskBundle
 
 
 class SimpleTask(SwarmTask):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, task_params):
+        super().__init__(task_params)
         self.task_complete = False
         self.sleep_time = 3
 
@@ -30,7 +30,7 @@ class TestSwarmBotTaskInbox(NetworkNodeTestClass):
         test_swarm_bot = self.create_network_node(SwarmBot)
 
         test_task_bundle = SwarmTaskBundle()
-        test_task_bundle.add_task(SimpleTask, 1)
+        test_task_bundle.add_task(SimpleTask, 1, [])
 
         self.assertFalse(test_task_bundle.is_complete())
 
@@ -45,9 +45,9 @@ class TestSwarmBotTaskInbox(NetworkNodeTestClass):
         test_swarm_bot = self.create_network_node(SwarmBot)
 
         test_task_bundle_1 = SwarmTaskBundle()
-        test_task_bundle_1.add_task(SimpleTask, 1)
+        test_task_bundle_1.add_task(SimpleTask, 1, [])
         test_task_bundle_2 = SwarmTaskBundle()
-        test_task_bundle_2.add_task(SimpleTask, 1)
+        test_task_bundle_2.add_task(SimpleTask, 1, [])
 
         self.assertFalse(test_task_bundle_1.is_complete())
         self.assertFalse(test_task_bundle_2.is_complete())
@@ -74,7 +74,7 @@ class TestSwarmBotTaskInbox(NetworkNodeTestClass):
         test_swarm_bot_3.set_task_executor_status(False)
 
         test_task_bundle = SwarmTaskBundle()
-        test_task_bundle.add_task(SimpleTask, 1)
+        test_task_bundle.add_task(SimpleTask, 1, [])
 
         check_val = test_swarm_bot_1.receive_task_bundle(test_task_bundle)
 
@@ -102,7 +102,7 @@ class TestSwarmBotTaskInbox(NetworkNodeTestClass):
         test_swarm_bot_3.set_task_executor_status(False)
 
         test_task_bundle = SwarmTaskBundle()
-        test_task_bundle.add_task(SimpleTask, 1)
+        test_task_bundle.add_task(SimpleTask, 1, [])
 
         check_val = test_swarm_bot_1.receive_task_bundle(test_task_bundle)
         self.assertTrue(check_val)

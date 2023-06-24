@@ -172,6 +172,7 @@ class TestSwarmMemory(NetworkNodeTestClass):
         self.assertIn(test_key, test_swarm_bot_3.get_local_swarm_memory_contents())
 
 
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     unittest.main()
