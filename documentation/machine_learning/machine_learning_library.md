@@ -1,0 +1,2 @@
+# Machine Learning Library
+The machine library is an internal set of functionality that the swarm bots can be used to handle machine learning related tasks. A subset of the library shall also be exposed as external hooks through the executor_interface.py class for use in tasks.
