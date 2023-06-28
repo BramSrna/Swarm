@@ -29,4 +29,5 @@ Need to improve:
 
 # ML Functionality In Kernel
 Look for areas where it can be integrated into the kernel. Some potential areas include:
-- 
+- Efficient message routing
+- Efficient message propagation
